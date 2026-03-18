@@ -6,7 +6,7 @@ A tamagotchi-style TUI for managing [pi](https://github.com/mariozechner/pi-codi
 
 Run multiple pi sessions in tmux, then manage them all without leaving the terminal — see what each agent is working on, which ones need attention, switch between them, kill or spawn new ones. All from a single keybinding.
 
-![tmuxgotchi demo](assets/demo.gif)
+![tmuxgotchi tamagotchi view](assets/tamagotchi-view.png)
 
 ## Views
 
