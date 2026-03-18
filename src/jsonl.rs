@@ -64,11 +64,12 @@ pub fn parse_jsonl(
     path: &Path,
     prev_file_size: u64,
     prev_session_id: Option<String>,
+    prev_total_tokens: u64,
     prev_cost: Option<f64>,
     prev_activity: Option<String>,
 ) -> JsonlInfo {
-    debug_log!("JSONL parse: path={} prev_size={} prev_session_id={:?}", 
-        path.display(), prev_file_size, prev_session_id);
+    debug_log!("JSONL parse: path={} prev_size={} prev_tokens={}", 
+        path.display(), prev_file_size, prev_total_tokens);
 
     let file = match fs::File::open(path) {
         Ok(f) => f,
@@ -80,10 +81,10 @@ pub fn parse_jsonl(
 
     // If file hasn't changed, return cached data
     if file_size == prev_file_size && prev_file_size > 0 {
-        debug_log!("JSONL: CACHE HIT - returning prev_session_id={:?}", prev_session_id);
+        debug_log!("JSONL: CACHE HIT - returning prev_total_tokens={}", prev_total_tokens);
         return JsonlInfo {
             session_id: prev_session_id,
-            total_tokens: 0,
+            total_tokens: prev_total_tokens,
             total_cost: prev_cost,
             last_activity: prev_activity,
             file_size,
@@ -99,9 +100,10 @@ pub fn parse_jsonl(
     // If we have previous data and file grew, seek to where we left off
     // (but preserve session_id since it's only in the first line which we skip)
     if prev_file_size > 0 {
-        debug_log!("JSONL: INCREMENTAL - seeking to {} with prev_session_id={:?}", prev_file_size, prev_session_id);
+        debug_log!("JSONL: INCREMENTAL - seeking to {} with prev_total_tokens={}", prev_file_size, prev_total_tokens);
         let _ = reader.seek(SeekFrom::Start(prev_file_size));
         session_id = prev_session_id;
+        total_tokens = prev_total_tokens;
         total_cost = prev_cost.unwrap_or(0.0);
         last_activity = prev_activity;
     } else {

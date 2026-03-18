@@ -82,8 +82,8 @@ fn render_room(
     debug_log!("RENDER_ROOM: {} sessions in room '{}'", sessions.len(), room_name);
     for s in sessions {
         let creature = sprites::creature_for_session(&s.session_id);
-        debug_log!("  -> project={} session_id={} creature={}", 
-            s.project_name, s.session_id, creature.name());
+        debug_log!("  -> project={} status={:?} creature={}", 
+            s.project_name, s.status, creature.name());
     }
     
     let block = Block::default()

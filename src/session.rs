@@ -53,6 +53,7 @@ pub struct PiSession {
     pub total_cost: Option<f64>,
     pub jsonl_path: PathBuf,
     pub last_file_size: u64,
+    pub last_total_tokens: u64,
 }
 
 impl PiSession {
@@ -142,6 +143,7 @@ pub fn discover_sessions(prev_sessions: &HashMap<String, PiSession>) -> Vec<PiSe
             total_cost: jsonl_info.total_cost,
             jsonl_path,
             last_file_size: jsonl_info.file_size,
+            last_total_tokens: jsonl_info.total_tokens,
         });
     }
 
@@ -241,6 +243,7 @@ fn find_jsonl_for_cwd(
                 &path,
                 prev.map(|s| s.last_file_size).unwrap_or(0),
                 prev.and_then(|s| Some(s.session_id.clone())),
+                prev.map(|s| s.last_total_tokens).unwrap_or(0),
                 prev.and_then(|s| s.total_cost),
                 prev.and_then(|s| s.last_activity.clone()),
             );
