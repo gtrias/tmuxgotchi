@@ -1,0 +1,1127 @@
+# Sprites Tamagotchi Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Implement 12 unique pixel-art creatures with per-creature animations for tmuxgotchi's Tamagotchi view.
+
+**Architecture:** Create a `sprites` module with a `CreatureType` enum, frame data for each creature/state combination, and a `creature_for_session()` function that deterministically assigns creatures to sessions. The `tamagotchi.rs` renderer will use this module instead of inline ASCII art.
+
+**Tech Stack:** Rust, ratatui (Span/Style for colored text)
+
+---
+
+## Task 1: Create sprites module structure
+
+**Files:**
+- Create: `src/sprites/mod.rs`
+- Create: `src/sprites/frames.rs`
+- Modify: `src/main.rs` (add `mod sprites;`)
+
+**Step 1: Create the sprites module with CreatureType enum**
+
+```rust
+// src/sprites/mod.rs
+mod frames;
+
+use crate::session::SessionStatus;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CreatureType {
+    Blob,
+    Snail,
+    Cat,
+    Robot,
+    Ghost,
+    Bird,
+    Octopus,
+    Cactus,
+    Mushroom,
+    Alien,
+    Frog,
+    Pumpkin,
+}
+
+impl CreatureType {
+    pub const ALL: [CreatureType; 12] = [
+        CreatureType::Blob,
+        CreatureType::Snail,
+        CreatureType::Cat,
+        CreatureType::Robot,
+        CreatureType::Ghost,
+        CreatureType::Bird,
+        CreatureType::Octopus,
+        CreatureType::Cactus,
+        CreatureType::Mushroom,
+        CreatureType::Alien,
+        CreatureType::Frog,
+        CreatureType::Pumpkin,
+    ];
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            CreatureType::Blob => "Blob",
+            CreatureType::Snail => "Snail",
+            CreatureType::Cat => "Cat",
+            CreatureType::Robot => "Robot",
+            CreatureType::Ghost => "Ghost",
+            CreatureType::Bird => "Bird",
+            CreatureType::Octopus => "Octopus",
+            CreatureType::Cactus => "Cactus",
+            CreatureType::Mushroom => "Mushroom",
+            CreatureType::Alien => "Alien",
+            CreatureType::Frog => "Frog",
+            CreatureType::Pumpkin => "Pumpkin",
+        }
+    }
+}
+
+/// Assign a creature type based on session_id hash
+pub fn creature_for_session(session_id: &str) -> CreatureType {
+    let hash: usize = session_id.bytes().map(|b| b as usize).sum();
+    CreatureType::ALL[hash % 12]
+}
+
+/// Get the sprite frames for a creature in a given state
+pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+    frames::get_frames(creature, status)
+}
+```
+
+**Step 2: Create frames.rs placeholder**
+
+```rust
+// src/sprites/frames.rs
+use super::CreatureType;
+use crate::session::SessionStatus;
+
+/// Get animation frames for a creature in a given state
+/// Returns slice of frames, each frame is a slice of lines
+pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+    match (creature, status) {
+        // Blob
+        (CreatureType::Blob, SessionStatus::Working) => BLOB_WORKING,
+        (CreatureType::Blob, SessionStatus::Idle) => BLOB_IDLE,
+        (CreatureType::Blob, SessionStatus::Input) => BLOB_INPUT,
+        (CreatureType::Blob, SessionStatus::New) => BLOB_NEW,
+        // Default fallback to blob for now (will add others)
+        (_, SessionStatus::Working) => BLOB_WORKING,
+        (_, SessionStatus::Idle) => BLOB_IDLE,
+        (_, SessionStatus::Input) => BLOB_INPUT,
+        (_, SessionStatus::New) => BLOB_NEW,
+    }
+}
+
+// ============================================================================
+// BLOB
+// ============================================================================
+
+const BLOB_WORKING: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ ◕ ◕ █✨",
+        " █  ◡  █  ",
+        "  █████   ",
+        "   ▀▀▀    ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ ◕ ◕ █  ",
+        " █  ◡  █✨",
+        "  █████   ",
+        "   ▀▀▀    ",
+    ],
+];
+
+const BLOB_IDLE: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        " █  ω  █  ",
+        "  █████   ",
+        "   ▀▀▀  z ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        " █  ω  █  ",
+        "  █████   ",
+        "   ▀▀▀ zZ ",
+    ],
+];
+
+const BLOB_INPUT: &[&[&str]] = &[
+    &[
+        "  ▄███▄ ! ",
+        " █ ò ó █  ",
+        " █  △  █  ",
+        "  █████   ",
+        "   ▀▀▀    ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ ò ó █ !",
+        " █  △  █  ",
+        "  █████   ",
+        "   ▀▀▀    ",
+    ],
+];
+
+const BLOB_NEW: &[&[&str]] = &[
+    &[
+        "   ╭─╮    ",
+        "  │◦ ◦│   ",
+        "  │ ◦ │   ",
+        "   ╰─╯    ",
+        "          ",
+    ],
+    &[
+        "   ╭─╮    ",
+        "  │ ◦◦│   ",
+        "  │◦  │   ",
+        "   ╰─╯    ",
+        "          ",
+    ],
+];
+```
+
+**Step 3: Add module to main.rs**
+
+Add `mod sprites;` after the other mod declarations in `src/main.rs`.
+
+**Step 4: Verify it compiles**
+
+Run: `cargo check`
+Expected: Compiles with warnings about unused code
+
+**Step 5: Commit**
+
+```bash
+git add src/sprites/ src/main.rs
+git commit -m "feat(sprites): add sprites module with CreatureType and blob frames"
+```
+
+---
+
+## Task 2: Add remaining creature frames (Part 1: Snail, Cat, Robot)
+
+**Files:**
+- Modify: `src/sprites/frames.rs`
+
+**Step 1: Add Snail frames**
+
+```rust
+// Add to frames.rs after BLOB constants
+
+// ============================================================================
+// SNAIL
+// ============================================================================
+
+const SNAIL_WORKING: &[&[&str]] = &[
+    &[
+        "    ▄▄▄   ",
+        "  ▄█◕◕█▄✨",
+        "  ██▀▀▀██ ",
+        "   ▀███▀  ",
+        "    ═══   ",
+    ],
+    &[
+        "    ▄▄▄   ",
+        "  ▄█◕◕█▄  ",
+        "  ██▀▀▀██✨",
+        "   ▀███▀  ",
+        "    ═══   ",
+    ],
+];
+
+const SNAIL_IDLE: &[&[&str]] = &[
+    &[
+        "    ▄▄▄   ",
+        "  ▄█––█▄  ",
+        "  ██▀▀▀██ ",
+        "   ▀███▀ z",
+        "    ═══   ",
+    ],
+    &[
+        "    ▄▄▄   ",
+        "  ▄█––█▄  ",
+        "  ██▀▀▀██ ",
+        "   ▀███▀zZ",
+        "    ═══   ",
+    ],
+];
+
+const SNAIL_INPUT: &[&[&str]] = &[
+    &[
+        "    ▄▄▄ ! ",
+        "  ▄█òó█▄  ",
+        "  ██▀▀▀██ ",
+        "   ▀███▀  ",
+        "    ═══   ",
+    ],
+    &[
+        "    ▄▄▄   ",
+        "  ▄█òó█▄ !",
+        "  ██▀▀▀██ ",
+        "   ▀███▀  ",
+        "    ═══   ",
+    ],
+];
+
+const SNAIL_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 2: Add Cat frames**
+
+```rust
+// ============================================================================
+// CAT
+// ============================================================================
+
+const CAT_WORKING: &[&[&str]] = &[
+    &[
+        "  ▄   ▄   ",
+        " █ ◕ ◕ █✨",
+        "  █ ◡ █   ",
+        "   ███    ",
+        "  █ █ ╲   ",
+    ],
+    &[
+        "  ▄   ▄   ",
+        " █ ◕ ◕ █  ",
+        "  █ ◡ █ ✨",
+        "   ███    ",
+        "  █ █ ╱   ",
+    ],
+];
+
+const CAT_IDLE: &[&[&str]] = &[
+    &[
+        "  ▄   ▄   ",
+        " █ – – █  ",
+        "  █ ω █   ",
+        "   ███  z ",
+        "  █ █     ",
+    ],
+    &[
+        "  ▄   ▄   ",
+        " █ – – █  ",
+        "  █ ω █   ",
+        "   ███ zZ ",
+        "  █ █     ",
+    ],
+];
+
+const CAT_INPUT: &[&[&str]] = &[
+    &[
+        "  ▄   ▄ ! ",
+        " █ ò ó █  ",
+        "  █ ^ █   ",
+        "   ███    ",
+        "  █ █     ",
+    ],
+    &[
+        "  ▄   ▄   ",
+        " █ ò ó █ !",
+        "  █ ^ █   ",
+        "   ███    ",
+        "  █ █     ",
+    ],
+];
+
+const CAT_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 3: Add Robot frames**
+
+```rust
+// ============================================================================
+// ROBOT
+// ============================================================================
+
+const ROBOT_WORKING: &[&[&str]] = &[
+    &[
+        "   ▄●▄    ",
+        "  █▀█▀█   ",
+        " ▐█◕ ◕█▌✨",
+        " ▐█ ▽ █▌  ",
+        "  █████   ",
+    ],
+    &[
+        "   ▄○▄    ",
+        "  █▀█▀█   ",
+        " ▐█◕ ◕█▌  ",
+        " ▐█ ▽ █▌✨",
+        "  █████   ",
+    ],
+];
+
+const ROBOT_IDLE: &[&[&str]] = &[
+    &[
+        "   ▄▄▄    ",
+        "  █▀█▀█   ",
+        " ▐█– –█▌  ",
+        " ▐█ ▽ █▌ z",
+        "  █████   ",
+    ],
+    &[
+        "   ▄▄▄    ",
+        "  █▀█▀█   ",
+        " ▐█– –█▌  ",
+        " ▐█ ▽ █▌zZ",
+        "  █████   ",
+    ],
+];
+
+const ROBOT_INPUT: &[&[&str]] = &[
+    &[
+        "   ▄█▄  ! ",
+        "  █▀█▀█   ",
+        " ▐█ò ó█▌  ",
+        " ▐█ ▽ █▌  ",
+        "  █████   ",
+    ],
+    &[
+        "   ▄█▄    ",
+        "  █▀█▀█  !",
+        " ▐█ò ó█▌  ",
+        " ▐█ ▽ █▌  ",
+        "  █████   ",
+    ],
+];
+
+const ROBOT_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 4: Update get_frames match**
+
+```rust
+pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+    match (creature, status) {
+        // Blob
+        (CreatureType::Blob, SessionStatus::Working) => BLOB_WORKING,
+        (CreatureType::Blob, SessionStatus::Idle) => BLOB_IDLE,
+        (CreatureType::Blob, SessionStatus::Input) => BLOB_INPUT,
+        (CreatureType::Blob, SessionStatus::New) => BLOB_NEW,
+        // Snail
+        (CreatureType::Snail, SessionStatus::Working) => SNAIL_WORKING,
+        (CreatureType::Snail, SessionStatus::Idle) => SNAIL_IDLE,
+        (CreatureType::Snail, SessionStatus::Input) => SNAIL_INPUT,
+        (CreatureType::Snail, SessionStatus::New) => SNAIL_NEW,
+        // Cat
+        (CreatureType::Cat, SessionStatus::Working) => CAT_WORKING,
+        (CreatureType::Cat, SessionStatus::Idle) => CAT_IDLE,
+        (CreatureType::Cat, SessionStatus::Input) => CAT_INPUT,
+        (CreatureType::Cat, SessionStatus::New) => CAT_NEW,
+        // Robot
+        (CreatureType::Robot, SessionStatus::Working) => ROBOT_WORKING,
+        (CreatureType::Robot, SessionStatus::Idle) => ROBOT_IDLE,
+        (CreatureType::Robot, SessionStatus::Input) => ROBOT_INPUT,
+        (CreatureType::Robot, SessionStatus::New) => ROBOT_NEW,
+        // Default fallback
+        (_, SessionStatus::Working) => BLOB_WORKING,
+        (_, SessionStatus::Idle) => BLOB_IDLE,
+        (_, SessionStatus::Input) => BLOB_INPUT,
+        (_, SessionStatus::New) => BLOB_NEW,
+    }
+}
+```
+
+**Step 5: Verify it compiles**
+
+Run: `cargo check`
+
+**Step 6: Commit**
+
+```bash
+git add src/sprites/frames.rs
+git commit -m "feat(sprites): add snail, cat, robot frames"
+```
+
+---
+
+## Task 3: Add remaining creature frames (Part 2: Ghost, Bird, Octopus)
+
+**Files:**
+- Modify: `src/sprites/frames.rs`
+
+**Step 1: Add Ghost frames**
+
+```rust
+// ============================================================================
+// GHOST
+// ============================================================================
+
+const GHOST_WORKING: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ ◕ ◕ █✨",
+        " █  ○  █  ",
+        " ▐█████▌  ",
+        "  ╲╱╲╱╲   ",
+    ],
+    &[
+        "   ▄███▄  ",
+        "  █ ◕ ◕ █ ",
+        "  █  ○  █✨",
+        "  ▐█████▌ ",
+        "   ╱╲╱╲╱  ",
+    ],
+];
+
+const GHOST_IDLE: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        " █  ○  █  ",
+        " ▐█████▌ z",
+        "  ╲╱╲╱╲   ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        " █  ○  █  ",
+        " ▐█████▌zZ",
+        "  ╲╱╲╱╲   ",
+    ],
+];
+
+const GHOST_INPUT: &[&[&str]] = &[
+    &[
+        "  ▄███▄ ! ",
+        " █ ò ó █  ",
+        " █  ○  █  ",
+        " ▐█████▌  ",
+        "  ╲╱╲╱╲   ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ ò ó █ !",
+        " █  ○  █  ",
+        " ▐█████▌  ",
+        "  ╲╱╲╱╲   ",
+    ],
+];
+
+const GHOST_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 2: Add Bird frames**
+
+```rust
+// ============================================================================
+// BIRD
+// ============================================================================
+
+const BIRD_WORKING: &[&[&str]] = &[
+    &[
+        "   ▄██▄   ",
+        "  █◕  ◕█✨",
+        " ◀█ ▼▼ █  ",
+        "   ████   ",
+        "   ▌▐▌▐   ",
+    ],
+    &[
+        "   ▄██▄   ",
+        "  █◕  ◕█  ",
+        "  █ ▼▼ █▶✨",
+        "   ████   ",
+        "   ▌▐▌▐   ",
+    ],
+];
+
+const BIRD_IDLE: &[&[&str]] = &[
+    &[
+        "   ▄██▄   ",
+        "  █–  –█  ",
+        "  █ ▼▼ █  ",
+        "   ████ z ",
+        "   ▌▐▌▐   ",
+    ],
+    &[
+        "   ▄██▄   ",
+        "  █–  –█  ",
+        "  █ ▼▼ █  ",
+        "   ████zZ ",
+        "   ▌▐▌▐   ",
+    ],
+];
+
+const BIRD_INPUT: &[&[&str]] = &[
+    &[
+        "   ▄██▄ ! ",
+        "  █ò  ó█  ",
+        "  █ ▼▼ █  ",
+        "   ████   ",
+        "   ▌▐▌▐   ",
+    ],
+    &[
+        "   ▄██▄   ",
+        "  █ò  ó█ !",
+        "  █ ▼▼ █  ",
+        "   ████   ",
+        "   ▌▐▌▐   ",
+    ],
+];
+
+const BIRD_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 3: Add Octopus frames**
+
+```rust
+// ============================================================================
+// OCTOPUS
+// ============================================================================
+
+const OCTOPUS_WORKING: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ ◕ ◕ █✨",
+        "  █████   ",
+        " ╱│╲█╱│╲  ",
+        "    █     ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ ◕ ◕ █  ",
+        "  █████ ✨",
+        " ╲│╱█╲│╱  ",
+        "    █     ",
+    ],
+];
+
+const OCTOPUS_IDLE: &[&[&str]] = &[
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        "  █████  z",
+        " ╱│╲█╱│╲  ",
+        "    █     ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ – – █  ",
+        "  █████ zZ",
+        " ╱│╲█╱│╲  ",
+        "    █     ",
+    ],
+];
+
+const OCTOPUS_INPUT: &[&[&str]] = &[
+    &[
+        "  ▄███▄ ! ",
+        " █ ò ó █  ",
+        "  █████   ",
+        " ╱│╲█╱│╲  ",
+        "    █     ",
+    ],
+    &[
+        "  ▄███▄   ",
+        " █ ò ó █ !",
+        "  █████   ",
+        " ╲│╱█╲│╱  ",
+        "    █     ",
+    ],
+];
+
+const OCTOPUS_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 4: Update get_frames match (add Ghost, Bird, Octopus)**
+
+**Step 5: Commit**
+
+```bash
+git add src/sprites/frames.rs
+git commit -m "feat(sprites): add ghost, bird, octopus frames"
+```
+
+---
+
+## Task 4: Add remaining creature frames (Part 3: Cactus, Mushroom, Alien, Frog, Pumpkin)
+
+**Files:**
+- Modify: `src/sprites/frames.rs`
+
+**Step 1: Add Cactus frames**
+
+```rust
+// ============================================================================
+// CACTUS
+// ============================================================================
+
+const CACTUS_WORKING: &[&[&str]] = &[
+    &[
+        "   ▄█▄  ✿ ",
+        "  ▄███▄   ",
+        " ▀█◕ ◕█▀✨",
+        "  █ ◡ █   ",
+        "   ███    ",
+    ],
+    &[
+        "   ▄█▄ ✿  ",
+        "  ▄███▄   ",
+        " ▀█◕ ◕█▀  ",
+        "  █ ◡ █ ✨",
+        "   ███    ",
+    ],
+];
+
+const CACTUS_IDLE: &[&[&str]] = &[
+    &[
+        "   ▄█▄    ",
+        "  ▄███▄   ",
+        " ▀█– –█▀  ",
+        "  █ ω █ z ",
+        "   ███    ",
+    ],
+    &[
+        "   ▄█▄    ",
+        "  ▄███▄   ",
+        " ▀█– –█▀  ",
+        "  █ ω █zZ ",
+        "   ███    ",
+    ],
+];
+
+const CACTUS_INPUT: &[&[&str]] = &[
+    &[
+        "   ▄█▄  ! ",
+        "  ▄███▄   ",
+        " ▀█ò ó█▀  ",
+        "  █ △ █   ",
+        "   ███    ",
+    ],
+    &[
+        "   ▄█▄    ",
+        "  ▄███▄  !",
+        " ▀█ò ó█▀  ",
+        "  █ △ █   ",
+        "   ███    ",
+    ],
+];
+
+const CACTUS_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 2: Add Mushroom frames**
+
+```rust
+// ============================================================================
+// MUSHROOM
+// ============================================================================
+
+const MUSHROOM_WORKING: &[&[&str]] = &[
+    &[
+        " ▄█████▄  ",
+        " █ ● ● █✨",
+        "  ▀███▀   ",
+        "   ███  ° ",
+        "   ▀▀▀  ° ",
+    ],
+    &[
+        " ▄█████▄  ",
+        " █ ● ● █  ",
+        "  ▀███▀ ✨",
+        "   ███ °  ",
+        "   ▀▀▀°   ",
+    ],
+];
+
+const MUSHROOM_IDLE: &[&[&str]] = &[
+    &[
+        " ▄█████▄  ",
+        " █ – – █  ",
+        "  ▀███▀   ",
+        "   ███  z ",
+        "   ▀▀▀    ",
+    ],
+    &[
+        " ▄█████▄  ",
+        " █ – – █  ",
+        "  ▀███▀   ",
+        "   ███ zZ ",
+        "   ▀▀▀    ",
+    ],
+];
+
+const MUSHROOM_INPUT: &[&[&str]] = &[
+    &[
+        " ▄█████▄! ",
+        " █ ò ó █  ",
+        "  ▀███▀   ",
+        "   ███    ",
+        "   ▀▀▀    ",
+    ],
+    &[
+        " ▄█████▄  ",
+        " █ ò ó █ !",
+        "  ▀███▀   ",
+        "   ███    ",
+        "   ▀▀▀    ",
+    ],
+];
+
+const MUSHROOM_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 3: Add Alien frames**
+
+```rust
+// ============================================================================
+// ALIEN
+// ============================================================================
+
+const ALIEN_WORKING: &[&[&str]] = &[
+    &[
+        "  ◢▄▄▄◣   ",
+        " █◉   ◉█✨",
+        "  █ ▽ █   ",
+        "   ███    ",
+        "  ▀   ▀   ",
+    ],
+    &[
+        "  ◢▄▄▄◣   ",
+        " █ ◉ ◉ █  ",
+        "  █ ▽ █ ✨",
+        "   ███    ",
+        "  ▀   ▀   ",
+    ],
+];
+
+const ALIEN_IDLE: &[&[&str]] = &[
+    &[
+        "  ◢▄▄▄◣   ",
+        " █ – – █  ",
+        "  █ ▽ █   ",
+        "   ███  z ",
+        "  ▀   ▀   ",
+    ],
+    &[
+        "  ◢▄▄▄◣   ",
+        " █ – – █  ",
+        "  █ ▽ █   ",
+        "   ███ zZ ",
+        "  ▀   ▀   ",
+    ],
+];
+
+const ALIEN_INPUT: &[&[&str]] = &[
+    &[
+        "  ◢▄▄▄◣ ! ",
+        " █ ◉ ◉ █  ",
+        "  █ △ █   ",
+        "   ███    ",
+        "  ▀   ▀   ",
+    ],
+    &[
+        "  ◢▄▄▄◣   ",
+        " █ ◉ ◉ █ !",
+        "  █ △ █   ",
+        "   ███    ",
+        "  ▀   ▀   ",
+    ],
+];
+
+const ALIEN_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 4: Add Frog frames**
+
+```rust
+// ============================================================================
+// FROG
+// ============================================================================
+
+const FROG_WORKING: &[&[&str]] = &[
+    &[
+        "  ◉   ◉   ",
+        " ▄█████▄✨",
+        " █  ▽  █  ",
+        "  ▀███▀   ",
+        "  █   █   ",
+    ],
+    &[
+        "  ◉   ◉   ",
+        " ▄█████▄  ",
+        " █  ▽══█✨",
+        "  ▀███▀   ",
+        "  █   █   ",
+    ],
+];
+
+const FROG_IDLE: &[&[&str]] = &[
+    &[
+        "  –   –   ",
+        " ▄█████▄  ",
+        " █  ω  █  ",
+        "  ▀███▀ z ",
+        "  █   █   ",
+    ],
+    &[
+        "  –   –   ",
+        " ▄█████▄  ",
+        " █  ω  █  ",
+        "  ▀███▀zZ ",
+        "  █   █   ",
+    ],
+];
+
+const FROG_INPUT: &[&[&str]] = &[
+    &[
+        "  ◉   ◉ ! ",
+        " ▄█████▄  ",
+        " █  △  █  ",
+        "  ▀███▀   ",
+        "  █   █   ",
+    ],
+    &[
+        "  ◉   ◉   ",
+        " ▄█████▄ !",
+        " █  △  █  ",
+        "  ▀███▀   ",
+        "  █   █   ",
+    ],
+];
+
+const FROG_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 5: Add Pumpkin frames**
+
+```rust
+// ============================================================================
+// PUMPKIN
+// ============================================================================
+
+const PUMPKIN_WORKING: &[&[&str]] = &[
+    &[
+        "    ▄     ",
+        " ▄█████▄✨",
+        " █▀◕▽◕▀█  ",
+        " █ ▀▀▀ █  ",
+        "  ▀███▀   ",
+    ],
+    &[
+        "    ▄     ",
+        " ▄█████▄  ",
+        " █▀◕▽◕▀█✨",
+        " █ ▀▀▀ █  ",
+        "  ▀███▀   ",
+    ],
+];
+
+const PUMPKIN_IDLE: &[&[&str]] = &[
+    &[
+        "    ▄     ",
+        " ▄█████▄  ",
+        " █▀–▽–▀█  ",
+        " █ ▀▀▀ █z ",
+        "  ▀███▀   ",
+    ],
+    &[
+        "    ▄     ",
+        " ▄█████▄  ",
+        " █▀–▽–▀█  ",
+        " █ ▀▀▀ █zZ",
+        "  ▀███▀   ",
+    ],
+];
+
+const PUMPKIN_INPUT: &[&[&str]] = &[
+    &[
+        "    ▄   ! ",
+        " ▄█████▄  ",
+        " █▀ò▽ó▀█  ",
+        " █ ▀▀▀ █  ",
+        "  ▀███▀   ",
+    ],
+    &[
+        "    ▄     ",
+        " ▄█████▄ !",
+        " █▀ò▽ó▀█  ",
+        " █ ▀▀▀ █  ",
+        "  ▀███▀   ",
+    ],
+];
+
+const PUMPKIN_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+```
+
+**Step 6: Complete the get_frames match with all creatures**
+
+```rust
+pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+    match (creature, status) {
+        (CreatureType::Blob, SessionStatus::Working) => BLOB_WORKING,
+        (CreatureType::Blob, SessionStatus::Idle) => BLOB_IDLE,
+        (CreatureType::Blob, SessionStatus::Input) => BLOB_INPUT,
+        (CreatureType::Blob, SessionStatus::New) => BLOB_NEW,
+        
+        (CreatureType::Snail, SessionStatus::Working) => SNAIL_WORKING,
+        (CreatureType::Snail, SessionStatus::Idle) => SNAIL_IDLE,
+        (CreatureType::Snail, SessionStatus::Input) => SNAIL_INPUT,
+        (CreatureType::Snail, SessionStatus::New) => SNAIL_NEW,
+        
+        (CreatureType::Cat, SessionStatus::Working) => CAT_WORKING,
+        (CreatureType::Cat, SessionStatus::Idle) => CAT_IDLE,
+        (CreatureType::Cat, SessionStatus::Input) => CAT_INPUT,
+        (CreatureType::Cat, SessionStatus::New) => CAT_NEW,
+        
+        (CreatureType::Robot, SessionStatus::Working) => ROBOT_WORKING,
+        (CreatureType::Robot, SessionStatus::Idle) => ROBOT_IDLE,
+        (CreatureType::Robot, SessionStatus::Input) => ROBOT_INPUT,
+        (CreatureType::Robot, SessionStatus::New) => ROBOT_NEW,
+        
+        (CreatureType::Ghost, SessionStatus::Working) => GHOST_WORKING,
+        (CreatureType::Ghost, SessionStatus::Idle) => GHOST_IDLE,
+        (CreatureType::Ghost, SessionStatus::Input) => GHOST_INPUT,
+        (CreatureType::Ghost, SessionStatus::New) => GHOST_NEW,
+        
+        (CreatureType::Bird, SessionStatus::Working) => BIRD_WORKING,
+        (CreatureType::Bird, SessionStatus::Idle) => BIRD_IDLE,
+        (CreatureType::Bird, SessionStatus::Input) => BIRD_INPUT,
+        (CreatureType::Bird, SessionStatus::New) => BIRD_NEW,
+        
+        (CreatureType::Octopus, SessionStatus::Working) => OCTOPUS_WORKING,
+        (CreatureType::Octopus, SessionStatus::Idle) => OCTOPUS_IDLE,
+        (CreatureType::Octopus, SessionStatus::Input) => OCTOPUS_INPUT,
+        (CreatureType::Octopus, SessionStatus::New) => OCTOPUS_NEW,
+        
+        (CreatureType::Cactus, SessionStatus::Working) => CACTUS_WORKING,
+        (CreatureType::Cactus, SessionStatus::Idle) => CACTUS_IDLE,
+        (CreatureType::Cactus, SessionStatus::Input) => CACTUS_INPUT,
+        (CreatureType::Cactus, SessionStatus::New) => CACTUS_NEW,
+        
+        (CreatureType::Mushroom, SessionStatus::Working) => MUSHROOM_WORKING,
+        (CreatureType::Mushroom, SessionStatus::Idle) => MUSHROOM_IDLE,
+        (CreatureType::Mushroom, SessionStatus::Input) => MUSHROOM_INPUT,
+        (CreatureType::Mushroom, SessionStatus::New) => MUSHROOM_NEW,
+        
+        (CreatureType::Alien, SessionStatus::Working) => ALIEN_WORKING,
+        (CreatureType::Alien, SessionStatus::Idle) => ALIEN_IDLE,
+        (CreatureType::Alien, SessionStatus::Input) => ALIEN_INPUT,
+        (CreatureType::Alien, SessionStatus::New) => ALIEN_NEW,
+        
+        (CreatureType::Frog, SessionStatus::Working) => FROG_WORKING,
+        (CreatureType::Frog, SessionStatus::Idle) => FROG_IDLE,
+        (CreatureType::Frog, SessionStatus::Input) => FROG_INPUT,
+        (CreatureType::Frog, SessionStatus::New) => FROG_NEW,
+        
+        (CreatureType::Pumpkin, SessionStatus::Working) => PUMPKIN_WORKING,
+        (CreatureType::Pumpkin, SessionStatus::Idle) => PUMPKIN_IDLE,
+        (CreatureType::Pumpkin, SessionStatus::Input) => PUMPKIN_INPUT,
+        (CreatureType::Pumpkin, SessionStatus::New) => PUMPKIN_NEW,
+    }
+}
+```
+
+**Step 7: Commit**
+
+```bash
+git add src/sprites/frames.rs
+git commit -m "feat(sprites): add cactus, mushroom, alien, frog, pumpkin frames
+
+All 12 creatures now have frames for all 4 states."
+```
+
+---
+
+## Task 5: Integrate sprites into tamagotchi.rs
+
+**Files:**
+- Modify: `src/ui/tamagotchi.rs`
+
+**Step 1: Import sprites module and update render_creature**
+
+Replace the `render_creature` function to use sprites:
+
+```rust
+use crate::sprites;
+
+fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect) {
+    let creature = sprites::creature_for_session(&session.session_id);
+    let frames = sprites::get_frames(creature, session.status.clone());
+    let frame_idx = ((tick / 4) as usize) % frames.len();
+    let sprite_lines = frames[frame_idx];
+    
+    let color = match session.status {
+        SessionStatus::Working => Color::Green,
+        SessionStatus::Idle => Color::DarkGray,
+        SessionStatus::Input => Color::Yellow,
+        SessionStatus::New => Color::Blue,
+    };
+
+    let mut lines: Vec<Line> = sprite_lines
+        .iter()
+        .map(|&l| Line::from(Span::styled(l, Style::default().fg(color))))
+        .collect();
+
+    // Add status info below creature
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![
+        Span::styled(
+            format!("{} ", creature.name()),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            session.status.label(),
+            Style::default().fg(color),
+        ),
+    ]));
+
+    if let Some(ref model) = session.model {
+        lines.push(Line::from(Span::styled(
+            model.clone(),
+            Style::default().fg(Color::Cyan),
+        )));
+    }
+
+    lines.push(Line::from(Span::styled(
+        session.context_display(),
+        Style::default().fg(Color::DarkGray),
+    )));
+
+    let para = Paragraph::new(lines);
+    frame.render_widget(para, area);
+}
+```
+
+**Step 2: Update render_zoomed_creature similarly**
+
+Apply the same sprite rendering logic to `render_zoomed_creature`.
+
+**Step 3: Verify it compiles and run**
+
+Run: `cargo run view`
+Expected: See different creatures for each session with animations
+
+**Step 4: Commit**
+
+```bash
+git add src/ui/tamagotchi.rs
+git commit -m "feat(ui): integrate sprites into tamagotchi view
+
+Each session now shows its assigned creature with proper animations."
+```
+
+---
+
+## Task 6: Final cleanup and push
+
+**Step 1: Run cargo clippy for lints**
+
+Run: `cargo clippy`
+Fix any warnings.
+
+**Step 2: Update README with creature info**
+
+Add a section mentioning the 12 creatures.
+
+**Step 3: Final commit and push**
+
+```bash
+git add -A
+git commit -m "chore: cleanup and documentation"
+git push
+```
