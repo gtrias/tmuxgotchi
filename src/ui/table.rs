@@ -9,7 +9,7 @@ use ratatui::{
 use crate::app::App;
 use crate::session::SessionStatus;
 
-pub fn render(frame: &mut Frame, app: &App) {
+pub fn render(frame: &mut Frame, app: &mut App) {
     let chunks = Layout::vertical([Constraint::Min(1), Constraint::Length(1)]).split(frame.area());
 
     render_table(frame, app, chunks[0]);

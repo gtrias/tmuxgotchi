@@ -111,7 +111,7 @@ fn run_tui(initial_view: ViewMode) -> io::Result<()> {
     let refresh_interval = Duration::from_secs(2);
 
     loop {
-        terminal.draw(|f| ui::render(f, &app))?;
+        terminal.draw(|f| ui::render(f, &mut app))?;
 
         if event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {
