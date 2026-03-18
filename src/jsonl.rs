@@ -61,6 +61,7 @@ struct CostInfo {
 pub fn parse_jsonl(
     path: &Path,
     prev_file_size: u64,
+    prev_session_id: Option<String>,
     prev_cost: Option<f64>,
     prev_activity: Option<String>,
 ) -> JsonlInfo {
@@ -74,7 +75,7 @@ pub fn parse_jsonl(
     // If file hasn't changed, return cached data
     if file_size == prev_file_size && prev_file_size > 0 {
         return JsonlInfo {
-            session_id: None,
+            session_id: prev_session_id,
             total_tokens: 0,
             total_cost: prev_cost,
             last_activity: prev_activity,
@@ -89,8 +90,10 @@ pub fn parse_jsonl(
     let mut last_activity: Option<String> = None;
 
     // If we have previous data and file grew, seek to where we left off
+    // (but preserve session_id since it's only in the first line which we skip)
     if prev_file_size > 0 {
         let _ = reader.seek(SeekFrom::Start(prev_file_size));
+        session_id = prev_session_id;
         total_cost = prev_cost.unwrap_or(0.0);
         last_activity = prev_activity;
     }

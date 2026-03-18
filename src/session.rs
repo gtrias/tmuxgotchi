@@ -247,6 +247,7 @@ fn find_jsonl_for_cwd(
             let info = jsonl::parse_jsonl(
                 &path,
                 prev.map(|s| s.last_file_size).unwrap_or(0),
+                prev.and_then(|s| Some(s.session_id.clone())),
                 prev.and_then(|s| s.total_cost),
                 prev.and_then(|s| s.last_activity.clone()),
             );
