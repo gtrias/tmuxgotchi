@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crossterm::event::{KeyCode, KeyEvent};
+use rand::RngExt;
 
 use crate::session::{self, PiSession, SessionStatus};
 use crate::tmux;
@@ -9,6 +10,41 @@ use crate::tmux;
 pub enum ViewMode {
     Table,
     Tamagotchi,
+}
+
+#[derive(Clone)]
+pub struct FloatingToken {
+    pub x: f32,
+    pub y: f32,
+    pub vx: f32,
+    pub vy: f32,
+}
+
+impl FloatingToken {
+    pub fn new_random(width: u16, height: u16) -> Self {
+        let mut rng = rand::rng();
+        Self {
+            x: rng.random_range(2.0..(width as f32 - 2.0)),
+            y: rng.random_range(1.0..(height as f32 - 3.0)),
+            vx: rng.random_range(-0.3..0.3),
+            vy: rng.random_range(-0.2..0.2),
+        }
+    }
+
+    pub fn update(&mut self, width: u16, height: u16) {
+        self.x += self.vx;
+        self.y += self.vy;
+
+        // Bounce off walls
+        if self.x < 2.0 || self.x > (width as f32 - 4.0) {
+            self.vx = -self.vx;
+            self.x = self.x.clamp(2.0, width as f32 - 4.0);
+        }
+        if self.y < 1.0 || self.y > (height as f32 - 4.0) {
+            self.vy = -self.vy;
+            self.y = self.y.clamp(1.0, height as f32 - 4.0);
+        }
+    }
 }
 
 pub struct App {
@@ -20,6 +56,7 @@ pub struct App {
     pub tama_page: usize,
     pub tama_zoomed_room: Option<String>,
     pub tama_selected_agent: usize,
+    pub room_tokens: HashMap<String, Vec<FloatingToken>>,
     prev_sessions: HashMap<String, PiSession>,
 }
 
@@ -34,6 +71,7 @@ impl App {
             tama_page: 0,
             tama_zoomed_room: None,
             tama_selected_agent: 0,
+            room_tokens: HashMap::new(),
             prev_sessions: HashMap::new(),
         }
     }
@@ -135,7 +173,6 @@ impl App {
                     if let Some(session) = self.selected_zoomed_session() {
                         let pane = session.tmux_pane.clone();
                         tmux::switch_to_session(&pane);
-                        self.should_quit = true;
                     }
                     return;
                 }
