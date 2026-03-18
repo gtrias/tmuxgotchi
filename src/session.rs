@@ -179,8 +179,11 @@ fn detect_working_status(pane_id: &str) -> bool {
 /// Encode a CWD path to pi's session directory format.
 /// /home/genar/src/sunflare -> --home-genar-src-sunflare--
 fn encode_cwd_to_session_dir(cwd: &str) -> String {
-    let encoded = cwd.replace('/', "-");
-    format!("-{}-", encoded)
+    // Pi encodes paths by replacing / with - and wrapping with --
+    // /home/genar/src/sunflare -> --home-genar-src-sunflare--
+    let without_leading_slash = cwd.strip_prefix('/').unwrap_or(cwd);
+    let encoded = without_leading_slash.replace('/', "-");
+    format!("--{}--", encoded)
 }
 
 /// Find the most recent JSONL file for a given CWD.
