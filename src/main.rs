@@ -10,6 +10,7 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, Terminal};
 
 mod app;
+mod debug;
 mod jsonl;
 mod model;
 mod session;

@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{Duration, SystemTime};
 
+use crate::debug_log;
 use crate::jsonl;
 use crate::status_bar;
 use crate::tmux;
@@ -231,6 +232,10 @@ fn find_jsonl_for_cwd(
         Some((path, _)) => {
             // Check if we can reuse cached data
             let prev = prev_sessions.values().find(|s| s.jsonl_path == path);
+            debug_log!("SESSION find_jsonl: path={} prev_found={} prev_session_id={:?}",
+                path.display(),
+                prev.is_some(),
+                prev.map(|s| s.session_id.clone()));
 
             let info = jsonl::parse_jsonl(
                 &path,
