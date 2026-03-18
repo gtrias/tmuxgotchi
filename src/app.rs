@@ -300,6 +300,37 @@ impl App {
         serde_json::to_string_pretty(&serde_json::json!({ "sessions": sessions }))
             .unwrap_or_else(|_| "{}".to_string())
     }
+
+    pub fn update_tokens(&mut self, room_name: &str, context_pct: Option<f32>, width: u16, height: u16) {
+        let remaining_pct = 100.0 - context_pct.unwrap_or(0.0);
+        let target_count = ((remaining_pct / 100.0) * 12.0).round() as usize;
+
+        let tokens = self.room_tokens.entry(room_name.to_string()).or_insert_with(Vec::new);
+
+        // Adjust token count
+        while tokens.len() < target_count {
+            tokens.push(FloatingToken::new_random(width, height));
+        }
+        while tokens.len() > target_count {
+            tokens.pop();
+        }
+
+        // Update positions
+        for token in tokens.iter_mut() {
+            token.update(width, height);
+        }
+    }
+
+    pub fn get_token_char(context_pct: Option<f32>) -> &'static str {
+        let remaining_pct = 100.0 - context_pct.unwrap_or(0.0);
+        if remaining_pct >= 70.0 {
+            "🔮"
+        } else if remaining_pct >= 30.0 {
+            "💎"
+        } else {
+            "⚡"
+        }
+    }
 }
 
 fn shorten_home(path: &str) -> String {
