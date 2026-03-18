@@ -1,0 +1,124 @@
+# tmuxgotchi
+
+A tamagotchi-style TUI for managing [pi](https://github.com/mariozechner/pi-coding-agent) agent sessions in tmux.
+
+Run multiple pi sessions in tmux, then manage them all without leaving the terminal — see what each agent is working on, which ones need attention, switch between them, kill or spawn new ones. All from a single keybinding.
+
+![tmuxgotchi demo](assets/demo.gif)
+
+## Views
+
+### Tamagotchi View (`tmuxgotchi view` or press `v`)
+
+A visual dashboard where each agent is a pixel-art creature living in a room. Designed for a side monitor — glance over and instantly see who's working, sleeping, or idle.
+
+| State | Creature | Color |
+|-------|----------|-------|
+| **Working** | Happy blob with sparkles ✨ | Green |
+| **Idle** | Sleeping blob with zzZ | Grey |
+| **New** | Egg with spots | Blue |
+| **Input** | Angry blob (pulsing) | Orange |
+
+- **Rooms** group agents by working directory (2×2 grid, paginated)
+- **Zoom** into a room with `1`-`4`, page with `j`/`k`
+
+### Table View (default)
+
+```
+┌─ tmuxgotchi ─────────────────────────────────────────────────────────────────────┐
+│  #  Session       Project::Branch          Status    Model       Context  Cost   │
+│  1  kelycube:7    sunflare::main           ● Work    Opus 4.6    24%/1M   $1.20  │
+│  2  kelycube:8    ticketdoor-infra::feat   ● Idle    Opus 4.6    7%/1M    $0.45  │
+│  3  0:2           workspace::detached      ● Idle    Opus 4.6    10%/1M   $0.80  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+j/k navigate  Enter switch  x kill  v tamagotchi  n new  r refresh  q quit
+```
+
+## How it works
+
+tmuxgotchi discovers pi sessions by:
+
+1. **tmux list-panes** — finds panes running `pi` processes
+2. **tmux capture-pane** — reads the pi status bar for model, context, cache info
+3. **~/.pi/agent/sessions/** — parses JSONL files for session data and costs
+4. **Status detection** — spinners (`⠋⠙⠹...`) + "Working..." = agent is busy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      tmux server                             │
+│  ┌───────────────┐  ┌───────────────┐  ┌──────────────┐     │
+│  │ session:pane  │  │ session:pane  │  │ session:pane │     │
+│  │      pi       │  │      pi       │  │      pi      │     │
+│  └───────┬───────┘  └───────┬───────┘  └──────┬───────┘     │
+└──────────┼──────────────────┼─────────────────┼─────────────┘
+           │                  │                 │
+           ▼                  ▼                 ▼
+     ┌──────────────────────────────────────────────┐
+     │              tmuxgotchi (TUI)                 │
+     └──────────────────────────────────────────────┘
+```
+
+## Install
+
+```bash
+cargo install --path .
+```
+
+Requires tmux and [pi](https://github.com/mariozechner/pi-coding-agent).
+
+## Usage
+
+```bash
+tmuxgotchi                    # Table dashboard (default)
+tmuxgotchi view               # Tamagotchi visual dashboard
+tmuxgotchi json               # JSON output (for scripting)
+tmuxgotchi launch             # Create a new pi session in current directory
+tmuxgotchi launch --cwd ~/src/myproject  # New session in specific dir
+tmuxgotchi next               # Jump to next working agent
+```
+
+### Keybindings — Table View
+
+| Key | Action |
+|-----|--------|
+| `j` / `k` | Navigate sessions |
+| `Enter` | Switch to selected tmux pane |
+| `x` | Kill selected session |
+| `v` | Switch to Tamagotchi view |
+| `n` | Launch new session |
+| `i` / `Tab` | Jump to next working agent |
+| `r` | Force refresh |
+| `q` / `Esc` | Quit |
+
+### Keybindings — Tamagotchi View
+
+| Key | Action |
+|-----|--------|
+| `1`-`4` | Zoom into room |
+| `j` / `k` | Previous / next page |
+| `h` / `l` | Select agent (when zoomed) |
+| `Enter` | Switch to selected agent |
+| `x` | Kill selected agent |
+| `n` | New session in room |
+| `Esc` | Zoom out (or quit) |
+| `v` | Switch to table view |
+| `r` | Force refresh |
+
+## tmux config
+
+Add to your `~/.tmux.conf`:
+
+```bash
+bind g display-popup -E -w 80% -h 60% "tmuxgotchi"        # prefix + g → dashboard
+bind G display-popup -E -w 80% -h 60% "tmuxgotchi view"   # prefix + G → tamagotchi
+bind N display-popup -E -w 80% -h 60% "tmuxgotchi launch" # prefix + N → new session  
+bind I run-shell "tmuxgotchi next"                         # prefix + I → jump to working
+```
+
+## Inspiration
+
+Inspired by [gavraz/recon](https://github.com/gavraz/recon), a tmux-native dashboard for Claude Code agents. tmuxgotchi adapts the concept for the pi-agent ecosystem.
+
+## License
+
+MIT
