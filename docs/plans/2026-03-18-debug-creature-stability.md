@@ -1,11 +1,17 @@
 # Debug Creature Stability
 
+**Status:** ✅ COMPLETED
+
 **Problem:** User reports creatures start correctly assigned but become equal after first refresh/turn.
 
-**Hypothesis:**
-1. `session_id` changes between refreshes (JSONL file changes, fallback ID generated)
-2. Sessions get reordered/mixed during refresh
-3. Hash collision (unlikely - tested and hashes are different)
+**Root cause found:** In `jsonl.rs`, when the JSONL file size was unchanged (cached), `parse_jsonl` returned `session_id: None` instead of preserving the cached session_id. This caused the fallback to tmux-based IDs (`tmux-kelycube-kelycube-12.1`) on subsequent refreshes, changing creature assignments.
+
+**Fix:** Added `prev_session_id` parameter to `parse_jsonl()` and return it in both cache-hit and incremental-seek scenarios.
+
+**Original hypothesis:**
+1. ✅ `session_id` changes between refreshes (JSONL file changes, fallback ID generated)
+2. ❌ Sessions get reordered/mixed during refresh
+3. ❌ Hash collision (unlikely - tested and hashes are different)
 
 ---
 
