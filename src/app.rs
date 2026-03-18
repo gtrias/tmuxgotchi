@@ -23,12 +23,15 @@ pub struct FloatingToken {
 impl FloatingToken {
     pub fn new_random(width: u16, height: u16) -> Self {
         let mut rng = rand::rng();
-        Self {
+        let mut token = Self {
             x: rng.random_range(2.0..(width as f32 - 2.0)),
             y: rng.random_range(1.0..(height as f32 - 3.0)),
             vx: rng.random_range(-0.3..0.3),
             vy: rng.random_range(-0.2..0.2),
-        }
+        };
+        // Push out of center exclusion zone if needed
+        token.update(width, height);
+        token
     }
 
     pub fn update(&mut self, width: u16, height: u16) {
@@ -43,6 +46,26 @@ impl FloatingToken {
         if self.y < 1.0 || self.y > (height as f32 - 4.0) {
             self.vy = -self.vy;
             self.y = self.y.clamp(1.0, height as f32 - 4.0);
+        }
+
+        // Avoid center zone (where creature renders)
+        let center_x = width as f32 / 2.0;
+        let center_y = height as f32 / 2.0;
+        let exclusion_w = 7.0;
+        let exclusion_h = 6.0;
+
+        let in_center_x = (self.x - center_x).abs() < exclusion_w;
+        let in_center_y = (self.y - center_y).abs() < exclusion_h;
+
+        if in_center_x && in_center_y {
+            // Push token away from center
+            if self.x < center_x {
+                self.x = center_x - exclusion_w;
+                self.vx = -self.vx.abs();
+            } else {
+                self.x = center_x + exclusion_w;
+                self.vx = self.vx.abs();
+            }
         }
     }
 }
