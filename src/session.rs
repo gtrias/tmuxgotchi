@@ -160,20 +160,16 @@ fn detect_working_status(pane_id: &str) -> bool {
         _ => return false,
     };
 
-    // Look for spinner characters + "Working..." or "Thinking"
+    // Spinner characters used by pi
     let spinners = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
-    for line in content.lines() {
-        let trimmed = line.trim();
-        // Check for spinner followed by Working/Thinking
-        if (trimmed.contains("Working...") || trimmed.contains("Thinking"))
-            && spinners.iter().any(|&s| trimmed.contains(s))
-        {
-            return true;
-        }
-    }
+    // Check entire content for spinner + Working pattern
+    let has_spinner = spinners.iter().any(|&s| content.contains(s));
+    let has_working = content.contains("Working...");
+    let has_thinking = content.contains("Thinking");
 
-    false
+    // Working if we have spinner AND (Working... or Thinking)
+    has_spinner && (has_working || has_thinking)
 }
 
 /// Encode a CWD path to pi's session directory format.
