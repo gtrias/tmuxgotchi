@@ -9,7 +9,7 @@ pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'
         (CreatureType::Blob, SessionStatus::Working) => BLOB_WORKING,
         (CreatureType::Blob, SessionStatus::Idle) => BLOB_IDLE,
         (CreatureType::Blob, SessionStatus::Input) => BLOB_INPUT,
-        (CreatureType::Blob, SessionStatus::New) => BLOB_NEW,
+        (CreatureType::Blob, SessionStatus::New) => EGG_NEW,
         
         // Snail
         (CreatureType::Snail, SessionStatus::Working) => SNAIL_WORKING,
@@ -134,20 +134,33 @@ const BLOB_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const BLOB_NEW: &[&[&str]] = &[
+const EGG_NEW: &[&[&str]] = &[
     &[
-        "   ╭─╮    ",
-        "  │◦ ◦│   ",
-        "  │ ◦ │   ",
-        "   ╰─╯    ",
-        "          ",
+        "            ",
+        "   ╭────╮   ",
+        "  │░▒░▒░▒│  ",
+        "  │▒░ ◦ ░▒│ ",
+        "  │░▒░▒░▒│  ",
+        "   ╰────╯   ",
+        "            ",
     ],
     &[
-        "   ╭─╮    ",
-        "  │ ◦◦│   ",
-        "  │◦  │   ",
-        "   ╰─╯    ",
-        "          ",
+        "            ",
+        "   ╭────╮   ",
+        "  │▒░▒░▒░│  ",
+        "  │░▒ ◦ ▒░│ ",
+        "  │▒░▒░▒░│  ",
+        "   ╰────╯   ",
+        "     ◡      ",
+    ],
+    &[
+        "            ",
+        "  ╭────╮    ",
+        "  │░▒░▒░▒│  ",
+        "  │▒░ ◦ ░▒│ ",
+        "  │░▒░▒░▒│  ",
+        "   ╰────╯   ",
+        "            ",
     ],
 ];
 
@@ -206,7 +219,7 @@ const SNAIL_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const SNAIL_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const SNAIL_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // CAT
@@ -263,7 +276,7 @@ const CAT_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const CAT_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const CAT_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // ROBOT
@@ -320,7 +333,7 @@ const ROBOT_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const ROBOT_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const ROBOT_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // GHOST
@@ -377,7 +390,7 @@ const GHOST_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const GHOST_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const GHOST_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // BIRD
@@ -434,7 +447,7 @@ const BIRD_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const BIRD_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const BIRD_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // OCTOPUS
@@ -491,7 +504,7 @@ const OCTOPUS_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const OCTOPUS_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const OCTOPUS_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // CACTUS
@@ -548,7 +561,7 @@ const CACTUS_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const CACTUS_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const CACTUS_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // MUSHROOM
@@ -605,7 +618,7 @@ const MUSHROOM_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const MUSHROOM_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const MUSHROOM_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // ALIEN
@@ -662,7 +675,7 @@ const ALIEN_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const ALIEN_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const ALIEN_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // FROG
@@ -719,7 +732,7 @@ const FROG_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const FROG_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const FROG_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // PUMPKIN
@@ -776,4 +789,4 @@ const PUMPKIN_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const PUMPKIN_NEW: &[&[&str]] = &[BLOB_NEW[0], BLOB_NEW[1]];
+const PUMPKIN_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
