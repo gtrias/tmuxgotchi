@@ -14,12 +14,31 @@ Run multiple pi sessions in tmux, then manage them all without leaving the termi
 
 A visual dashboard where each agent is a pixel-art creature living in a room. Designed for a side monitor — glance over and instantly see who's working, sleeping, or idle.
 
-| State | Creature | Color |
-|-------|----------|-------|
-| **Working** | Happy blob with sparkles ✨ | Green |
-| **Idle** | Sleeping blob with zzZ | Grey |
-| **New** | Egg with spots | Blue |
-| **Input** | Angry blob (pulsing) | Orange |
+**12 unique creatures** — each session gets a creature based on `hash(session_id) % 12`:
+
+| Creature | Description |
+|----------|-------------|
+| 🟢 Blob | Friendly goo ball |
+| 🐌 Snail | Slow but steady |
+| 🐱 Cat | Tail wags when working |
+| 🤖 Robot | Antenna blinks |
+| 👻 Ghost | Floats up/down |
+| 🐦 Bird | Wings flap |
+| 🐙 Octopus | Tentacles wave |
+| 🌵 Cactus | Flower blooms |
+| 🍄 Mushroom | Spore particles |
+| 👽 Alien | Eyes shift |
+| 🐸 Frog | Tongue catches bugs |
+| 🎃 Pumpkin | Jack-o-lantern glow |
+
+**States** — each creature has unique animations per state:
+
+| State | Animation | Color |
+|-------|-----------|-------|
+| **Working** | Sparkles ✨ | Green |
+| **Idle** | Sleeping zzZ | Grey |
+| **New** | Egg trembles | Blue |
+| **Input** | Alert ! (pulsing) | Orange |
 
 - **Rooms** group agents by working directory (2×2 grid, paginated)
 - **Zoom** into a room with `1`-`4`, page with `j`/`k`
