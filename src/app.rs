@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crossterm::event::{KeyCode, KeyEvent};
 
+use crate::debug_log;
 use crate::session::{self, PiSession, SessionStatus};
 use crate::tmux;
 
@@ -39,7 +40,15 @@ impl App {
     }
 
     pub fn refresh(&mut self) {
+        debug_log!("=== REFRESH START ===");
+        debug_log!("prev_sessions count: {}", self.prev_sessions.len());
+
         let sessions = session::discover_sessions(&self.prev_sessions);
+
+        debug_log!("new sessions count: {}", sessions.len());
+        for s in &sessions {
+            debug_log!("  - {} ({}) -> {}", s.project_name, s.session_id, s.status.label());
+        }
 
         self.prev_sessions = sessions
             .iter()
@@ -47,6 +56,7 @@ impl App {
             .collect();
 
         self.sessions = sessions;
+        debug_log!("=== REFRESH END ===");
 
         if self.selected >= self.sessions.len() && !self.sessions.is_empty() {
             self.selected = self.sessions.len() - 1;

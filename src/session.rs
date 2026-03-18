@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{Duration, SystemTime};
 
+use crate::debug_log;
 use crate::jsonl;
 use crate::status_bar;
 use crate::tmux;
@@ -146,6 +147,17 @@ pub fn discover_sessions(prev_sessions: &HashMap<String, PiSession>) -> Vec<PiSe
 
     // Sort by last activity (most recent first)
     sessions.sort_by(|a, b| b.last_activity.cmp(&a.last_activity));
+
+    for s in &sessions {
+        debug_log!(
+            "DISCOVER: session_id={} project={} status={:?} jsonl={}",
+            s.session_id,
+            s.project_name,
+            s.status,
+            s.jsonl_path.display()
+        );
+    }
+
     sessions
 }
 

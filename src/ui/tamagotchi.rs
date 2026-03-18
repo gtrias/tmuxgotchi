@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::app::App;
+use crate::debug_log;
 use crate::session::{PiSession, SessionStatus};
 use crate::sprites;
 
@@ -104,6 +105,14 @@ fn render_room(
 
 fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect) {
     let creature = sprites::creature_for_session(&session.session_id);
+    
+    debug_log!(
+        "RENDER: session_id={} -> creature={} (hash={})",
+        session.session_id,
+        creature.name(),
+        session.session_id.bytes().map(|b| b as usize).sum::<usize>() % 12
+    );
+
     let frames = sprites::get_frames(creature, session.status.clone());
     let frame_idx = ((tick / 4) as usize) % frames.len();
     let sprite_lines = frames[frame_idx];
