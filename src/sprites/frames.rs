@@ -15,67 +15,67 @@ pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'
         (CreatureType::Snail, SessionStatus::Working) => SNAIL_WORKING,
         (CreatureType::Snail, SessionStatus::Idle) => SNAIL_IDLE,
         (CreatureType::Snail, SessionStatus::Input) => SNAIL_INPUT,
-        (CreatureType::Snail, SessionStatus::New) => SNAIL_NEW,
+        (CreatureType::Snail, SessionStatus::New) => EGG_NEW,
         
         // Cat
         (CreatureType::Cat, SessionStatus::Working) => CAT_WORKING,
         (CreatureType::Cat, SessionStatus::Idle) => CAT_IDLE,
         (CreatureType::Cat, SessionStatus::Input) => CAT_INPUT,
-        (CreatureType::Cat, SessionStatus::New) => CAT_NEW,
+        (CreatureType::Cat, SessionStatus::New) => EGG_NEW,
         
         // Robot
         (CreatureType::Robot, SessionStatus::Working) => ROBOT_WORKING,
         (CreatureType::Robot, SessionStatus::Idle) => ROBOT_IDLE,
         (CreatureType::Robot, SessionStatus::Input) => ROBOT_INPUT,
-        (CreatureType::Robot, SessionStatus::New) => ROBOT_NEW,
+        (CreatureType::Robot, SessionStatus::New) => EGG_NEW,
         
         // Ghost
         (CreatureType::Ghost, SessionStatus::Working) => GHOST_WORKING,
         (CreatureType::Ghost, SessionStatus::Idle) => GHOST_IDLE,
         (CreatureType::Ghost, SessionStatus::Input) => GHOST_INPUT,
-        (CreatureType::Ghost, SessionStatus::New) => GHOST_NEW,
+        (CreatureType::Ghost, SessionStatus::New) => EGG_NEW,
         
         // Bird
         (CreatureType::Bird, SessionStatus::Working) => BIRD_WORKING,
         (CreatureType::Bird, SessionStatus::Idle) => BIRD_IDLE,
         (CreatureType::Bird, SessionStatus::Input) => BIRD_INPUT,
-        (CreatureType::Bird, SessionStatus::New) => BIRD_NEW,
+        (CreatureType::Bird, SessionStatus::New) => EGG_NEW,
         
         // Octopus
         (CreatureType::Octopus, SessionStatus::Working) => OCTOPUS_WORKING,
         (CreatureType::Octopus, SessionStatus::Idle) => OCTOPUS_IDLE,
         (CreatureType::Octopus, SessionStatus::Input) => OCTOPUS_INPUT,
-        (CreatureType::Octopus, SessionStatus::New) => OCTOPUS_NEW,
+        (CreatureType::Octopus, SessionStatus::New) => EGG_NEW,
         
         // Cactus
         (CreatureType::Cactus, SessionStatus::Working) => CACTUS_WORKING,
         (CreatureType::Cactus, SessionStatus::Idle) => CACTUS_IDLE,
         (CreatureType::Cactus, SessionStatus::Input) => CACTUS_INPUT,
-        (CreatureType::Cactus, SessionStatus::New) => CACTUS_NEW,
+        (CreatureType::Cactus, SessionStatus::New) => EGG_NEW,
         
         // Mushroom
         (CreatureType::Mushroom, SessionStatus::Working) => MUSHROOM_WORKING,
         (CreatureType::Mushroom, SessionStatus::Idle) => MUSHROOM_IDLE,
         (CreatureType::Mushroom, SessionStatus::Input) => MUSHROOM_INPUT,
-        (CreatureType::Mushroom, SessionStatus::New) => MUSHROOM_NEW,
+        (CreatureType::Mushroom, SessionStatus::New) => EGG_NEW,
         
         // Alien
         (CreatureType::Alien, SessionStatus::Working) => ALIEN_WORKING,
         (CreatureType::Alien, SessionStatus::Idle) => ALIEN_IDLE,
         (CreatureType::Alien, SessionStatus::Input) => ALIEN_INPUT,
-        (CreatureType::Alien, SessionStatus::New) => ALIEN_NEW,
+        (CreatureType::Alien, SessionStatus::New) => EGG_NEW,
         
         // Frog
         (CreatureType::Frog, SessionStatus::Working) => FROG_WORKING,
         (CreatureType::Frog, SessionStatus::Idle) => FROG_IDLE,
         (CreatureType::Frog, SessionStatus::Input) => FROG_INPUT,
-        (CreatureType::Frog, SessionStatus::New) => FROG_NEW,
+        (CreatureType::Frog, SessionStatus::New) => EGG_NEW,
         
         // Pumpkin
         (CreatureType::Pumpkin, SessionStatus::Working) => PUMPKIN_WORKING,
         (CreatureType::Pumpkin, SessionStatus::Idle) => PUMPKIN_IDLE,
         (CreatureType::Pumpkin, SessionStatus::Input) => PUMPKIN_INPUT,
-        (CreatureType::Pumpkin, SessionStatus::New) => PUMPKIN_NEW,
+        (CreatureType::Pumpkin, SessionStatus::New) => EGG_NEW,
     }
 }
 
@@ -262,8 +262,6 @@ const SNAIL_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const SNAIL_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // CAT
 // ============================================================================
@@ -349,8 +347,6 @@ const CAT_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const CAT_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // ROBOT
 // ============================================================================
@@ -409,8 +405,6 @@ const ROBOT_INPUT: &[&[&str]] = &[
         "   █▀ ▀█    ",
     ],
 ];
-
-const ROBOT_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // GHOST
@@ -489,8 +483,6 @@ const GHOST_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const GHOST_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // BIRD
 // ============================================================================
@@ -558,8 +550,6 @@ const BIRD_INPUT: &[&[&str]] = &[
         "   ▌▐▌▐   ",
     ],
 ];
-
-const BIRD_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // OCTOPUS
@@ -646,8 +636,6 @@ const OCTOPUS_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const OCTOPUS_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // CACTUS
 // ============================================================================
@@ -715,8 +703,6 @@ const CACTUS_INPUT: &[&[&str]] = &[
         "   ███    ",
     ],
 ];
-
-const CACTUS_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // MUSHROOM
@@ -794,8 +780,6 @@ const MUSHROOM_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const MUSHROOM_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // ALIEN
 // ============================================================================
@@ -871,8 +855,6 @@ const ALIEN_INPUT: &[&[&str]] = &[
         "  ▀▀    ▀▀  ",
     ],
 ];
-
-const ALIEN_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
 
 // ============================================================================
 // FROG
@@ -959,8 +941,6 @@ const FROG_INPUT: &[&[&str]] = &[
     ],
 ];
 
-const FROG_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
-
 // ============================================================================
 // PUMPKIN
 // ============================================================================
@@ -1019,5 +999,3 @@ const PUMPKIN_INPUT: &[&[&str]] = &[
         "            ",
     ],
 ];
-
-const PUMPKIN_NEW: &[&[&str]] = &[EGG_NEW[0], EGG_NEW[1]];
