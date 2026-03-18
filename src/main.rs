@@ -13,6 +13,7 @@ mod app;
 mod jsonl;
 mod model;
 mod session;
+mod sprites;
 mod status_bar;
 mod tmux;
 mod ui;

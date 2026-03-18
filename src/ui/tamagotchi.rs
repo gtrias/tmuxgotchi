@@ -8,6 +8,7 @@ use ratatui::{
 
 use crate::app::App;
 use crate::session::{PiSession, SessionStatus};
+use crate::sprites;
 
 const ROOMS_PER_PAGE: usize = 4;
 
@@ -102,41 +103,33 @@ fn render_room(
 }
 
 fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect) {
-    let (creature, color) = match session.status {
-        SessionStatus::Working => {
-            // Animated sparkles
-            let sparkle = if tick % 4 < 2 { "✨" } else { "  " };
-            let creature = format!(
-                "   ╭───╮{}\n  (• ◡•)\n   ╰─┬─╯\n    /|\\",
-                sparkle
-            );
-            (creature, Color::Green)
-        }
-        SessionStatus::Idle => {
-            let creature = "   ╭───╮\n  ( -_-)  zzZ\n   ╰───╯".to_string();
-            (creature, Color::DarkGray)
-        }
-        SessionStatus::New => {
-            let creature = "    ╭─╮\n   ( 🥚 )\n    ╰─╯".to_string();
-            (creature, Color::Blue)
-        }
-        SessionStatus::Input => {
-            // Pulsing effect
-            let intense = tick % 4 < 2;
-            let creature = "   ╭───╮\n  (ಠ_ಠ)\n   ╰───╯".to_string();
-            let c = if intense { Color::Yellow } else { Color::Rgb(180, 140, 0) };
-            (creature, c)
-        }
+    let creature = sprites::creature_for_session(&session.session_id);
+    let frames = sprites::get_frames(creature, session.status.clone());
+    let frame_idx = ((tick / 4) as usize) % frames.len();
+    let sprite_lines = frames[frame_idx];
+
+    let color = match session.status {
+        SessionStatus::Working => Color::Green,
+        SessionStatus::Idle => Color::DarkGray,
+        SessionStatus::Input => Color::Yellow,
+        SessionStatus::New => Color::Blue,
     };
 
-    let mut lines: Vec<Line> = creature.lines().map(|l| Line::from(l)).collect();
+    let mut lines: Vec<Line> = sprite_lines
+        .iter()
+        .map(|&l| Line::from(Span::styled(l, Style::default().fg(color))))
+        .collect();
 
     // Add status info below creature
     lines.push(Line::from(""));
     lines.push(Line::from(vec![
         Span::styled(
-            session.status.label(),
+            format!("{} ", creature.name()),
             Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            session.status.label(),
+            Style::default().fg(color),
         ),
     ]));
 
@@ -200,44 +193,37 @@ fn render_zoomed_creature(
     is_selected: bool,
     area: Rect,
 ) {
-    let (creature, color) = match session.status {
-        SessionStatus::Working => {
-            let frame_idx = (tick / 2) % 4;
-            let sparkles = ["✨", " ✨", "  ✨", " ✨"];
-            let creature = format!(
-                "\n     ╭─────╮  {}\n    (  • ◡•  )\n     ╰──┬──╯\n       /|\\\n       / \\",
-                sparkles[frame_idx as usize]
-            );
-            (creature, Color::Green)
-        }
-        SessionStatus::Idle => {
-            let z_frame = (tick / 4) % 3;
-            let zzz = ["z", "zz", "zzZ"];
-            let creature = format!(
-                "\n     ╭─────╮\n    (  -_-  )  {}\n     ╰─────╯",
-                zzz[z_frame as usize]
-            );
-            (creature, Color::DarkGray)
-        }
-        SessionStatus::New => {
-            let creature = "\n      ╭───╮\n     (  🥚  )\n      ╰───╯".to_string();
-            (creature, Color::Blue)
-        }
-        SessionStatus::Input => {
-            let intense = tick % 4 < 2;
-            let creature = "\n     ╭─────╮\n    (  ಠ_ಠ  )  !\n     ╰─────╯".to_string();
-            let c = if intense { Color::Yellow } else { Color::Rgb(180, 140, 0) };
-            (creature, c)
-        }
+    let creature = sprites::creature_for_session(&session.session_id);
+    let frames = sprites::get_frames(creature, session.status.clone());
+    let frame_idx = ((tick / 4) as usize) % frames.len();
+    let sprite_lines = frames[frame_idx];
+
+    let color = match session.status {
+        SessionStatus::Working => Color::Green,
+        SessionStatus::Idle => Color::DarkGray,
+        SessionStatus::Input => Color::Yellow,
+        SessionStatus::New => Color::Blue,
     };
 
-    let mut lines: Vec<Line> = creature.lines().map(|l| Line::from(l)).collect();
+    // Add some padding at the top
+    let mut lines: Vec<Line> = vec![Line::from("")];
+    
+    // Render sprite
+    for &line in sprite_lines {
+        lines.push(Line::from(Span::styled(line, Style::default().fg(color))));
+    }
 
     lines.push(Line::from(""));
-    lines.push(Line::from(vec![Span::styled(
-        session.status.label(),
-        Style::default().fg(color).add_modifier(Modifier::BOLD),
-    )]));
+    lines.push(Line::from(vec![
+        Span::styled(
+            format!("{} ", creature.name()),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            session.status.label(),
+            Style::default().fg(color),
+        ),
+    ]));
 
     if let Some(ref model) = session.model {
         lines.push(Line::from(Span::styled(
