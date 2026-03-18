@@ -12,7 +12,7 @@ use crate::sprites;
 
 const ROOMS_PER_PAGE: usize = 4;
 
-pub fn render(frame: &mut Frame, app: &App) {
+pub fn render(frame: &mut Frame, app: &mut App) {
     let chunks = Layout::vertical([Constraint::Min(1), Constraint::Length(1)]).split(frame.area());
 
     if app.tama_zoomed_room.is_some() {
@@ -24,7 +24,7 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_footer(frame, app, chunks[1]);
 }
 
-fn render_rooms(frame: &mut Frame, app: &App, area: Rect) {
+fn render_rooms(frame: &mut Frame, app: &mut App, area: Rect) {
     let rooms = app.get_rooms();
     let start = app.tama_page * ROOMS_PER_PAGE;
     let end = (start + ROOMS_PER_PAGE).min(rooms.len());
@@ -51,27 +51,43 @@ fn render_rooms(frame: &mut Frame, app: &App, area: Rect) {
     // 2x2 grid layout
     let rows = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).split(inner);
 
-    for (row_idx, row_area) in rows.iter().enumerate() {
-        let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(*row_area);
+    // Pre-collect room data to avoid borrow conflicts
+    let tick = app.tick;
+    let room_data: Vec<(String, Vec<PiSession>, Rect)> = rows
+        .iter()
+        .enumerate()
+        .flat_map(|(row_idx, row_area)| {
+            let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(*row_area);
+            cols.iter()
+                .enumerate()
+                .filter_map(|(col_idx, col_area)| {
+                    let room_idx = row_idx * 2 + col_idx;
+                    if room_idx < visible_rooms.len() {
+                        let room_name = visible_rooms[room_idx].clone();
+                        let sessions: Vec<PiSession> = app
+                            .sessions
+                            .iter()
+                            .filter(|s| shorten_home(&s.cwd) == room_name)
+                            .cloned()
+                            .collect();
+                        Some((room_name, sessions, *col_area))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
 
-        for (col_idx, col_area) in cols.iter().enumerate() {
-            let room_idx = row_idx * 2 + col_idx;
-            if room_idx < visible_rooms.len() {
-                let room_name = visible_rooms[room_idx];
-                let sessions: Vec<&PiSession> = app
-                    .sessions
-                    .iter()
-                    .filter(|s| shorten_home(&s.cwd) == **room_name)
-                    .collect();
-
-                render_room(frame, room_name, &sessions, room_idx + 1, app.tick, *col_area);
-            }
-        }
+    for (idx, (room_name, sessions, col_area)) in room_data.into_iter().enumerate() {
+        let session_refs: Vec<&PiSession> = sessions.iter().collect();
+        render_room(frame, app, &room_name, &session_refs, idx + 1, tick, col_area);
     }
 }
 
 fn render_room(
     frame: &mut Frame,
+    app: &mut App,
     room_name: &str,
     sessions: &[&PiSession],
     room_num: usize,
@@ -84,6 +100,9 @@ fn render_room(
 
     let inner = block.inner(area);
     frame.render_widget(block, area);
+
+    // Render floating tokens first (background layer)
+    render_tokens(frame, app, room_name, sessions, inner);
 
     if sessions.is_empty() {
         return;
@@ -161,7 +180,49 @@ fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect
     frame.render_widget(para, centered_area);
 }
 
-fn render_zoomed_room(frame: &mut Frame, app: &App, area: Rect) {
+fn render_tokens(
+    frame: &mut Frame,
+    app: &mut App,
+    room_name: &str,
+    sessions: &[&PiSession],
+    area: Rect,
+) {
+    // Get average context_pct for the room
+    let avg_context_pct = if sessions.is_empty() {
+        None
+    } else {
+        let sum: f32 = sessions.iter()
+            .filter_map(|s| s.context_pct)
+            .sum();
+        let count = sessions.iter().filter(|s| s.context_pct.is_some()).count();
+        if count > 0 {
+            Some(sum / count as f32)
+        } else {
+            None
+        }
+    };
+
+    // Update token positions
+    app.update_tokens(room_name, avg_context_pct, area.width, area.height);
+
+    // Get token character based on context level
+    let token_char = App::get_token_char(avg_context_pct);
+
+    // Render each token
+    if let Some(tokens) = app.room_tokens.get(room_name) {
+        for token in tokens {
+            let x = area.x + (token.x.round() as u16).min(area.width.saturating_sub(3));
+            let y = area.y + (token.y.round() as u16).min(area.height.saturating_sub(1));
+            
+            if x < area.x + area.width && y < area.y + area.height {
+                let buf = frame.buffer_mut();
+                buf.set_string(x, y, token_char, Style::default());
+            }
+        }
+    }
+}
+
+fn render_zoomed_room(frame: &mut Frame, app: &mut App, area: Rect) {
     let room_name = app.tama_zoomed_room.as_ref().unwrap();
     let sessions: Vec<&PiSession> = app
         .sessions
