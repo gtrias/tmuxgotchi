@@ -27,9 +27,9 @@ A visual dashboard where each agent is a pixel-art creature living in a room. De
 ```
 ┌─ tmuxgotchi ─────────────────────────────────────────────────────────────────────┐
 │  #  Session       Project::Branch          Status    Model       Context  Cost   │
-│  1  kelycube:7    sunflare::main           ● Work    Opus 4.6    24%/1M   $1.20  │
-│  2  kelycube:8    ticketdoor-infra::feat   ● Idle    Opus 4.6    7%/1M    $0.45  │
-│  3  0:2           workspace::detached      ● Idle    Opus 4.6    10%/1M   $0.80  │
+│  1  dev:1         myapp::main              ● Work    Opus 4.6    24%/1M   $1.20  │
+│  2  dev:2         backend::feat/api        ● Idle    Opus 4.6    7%/1M    $0.45  │
+│  3  work:1        frontend::develop        ● Idle    Sonnet 4.6  10%/200k $0.80  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 j/k navigate  Enter switch  x kill  v tamagotchi  n new  r refresh  q quit
 ```
