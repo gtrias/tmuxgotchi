@@ -7,7 +7,6 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::debug_log;
 use crate::session::{PiSession, SessionStatus};
 use crate::sprites;
 
@@ -79,13 +78,6 @@ fn render_room(
     tick: u64,
     area: Rect,
 ) {
-    debug_log!("RENDER_ROOM: {} sessions in room '{}'", sessions.len(), room_name);
-    for s in sessions {
-        let creature = sprites::creature_for_session(&s.session_id);
-        debug_log!("  -> project={} status={:?} creature={}", 
-            s.project_name, s.status, creature.name());
-    }
-    
     let block = Block::default()
         .borders(Borders::ALL)
         .title(format!(" {} {} ", room_num, room_name));

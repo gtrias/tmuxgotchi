@@ -4,8 +4,6 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::debug_log;
-
 /// Extracted info from a JSONL session file.
 #[derive(Debug, Default, Clone)]
 pub struct JsonlInfo {
@@ -68,20 +66,15 @@ pub fn parse_jsonl(
     prev_cost: Option<f64>,
     prev_activity: Option<String>,
 ) -> JsonlInfo {
-    debug_log!("JSONL parse: path={} prev_size={} prev_tokens={}", 
-        path.display(), prev_file_size, prev_total_tokens);
-
     let file = match fs::File::open(path) {
         Ok(f) => f,
         Err(_) => return JsonlInfo::default(),
     };
 
     let file_size = file.metadata().map(|m| m.len()).unwrap_or(0);
-    debug_log!("JSONL: current_size={} prev_size={}", file_size, prev_file_size);
 
     // If file hasn't changed, return cached data
     if file_size == prev_file_size && prev_file_size > 0 {
-        debug_log!("JSONL: CACHE HIT - returning prev_total_tokens={}", prev_total_tokens);
         return JsonlInfo {
             session_id: prev_session_id,
             total_tokens: prev_total_tokens,
@@ -100,14 +93,11 @@ pub fn parse_jsonl(
     // If we have previous data and file grew, seek to where we left off
     // (but preserve session_id since it's only in the first line which we skip)
     if prev_file_size > 0 {
-        debug_log!("JSONL: INCREMENTAL - seeking to {} with prev_total_tokens={}", prev_file_size, prev_total_tokens);
         let _ = reader.seek(SeekFrom::Start(prev_file_size));
         session_id = prev_session_id;
         total_tokens = prev_total_tokens;
         total_cost = prev_cost.unwrap_or(0.0);
         last_activity = prev_activity;
-    } else {
-        debug_log!("JSONL: FULL PARSE - reading from start");
     }
 
     let mut line = String::new();
@@ -151,8 +141,6 @@ pub fn parse_jsonl(
             }
         }
     }
-
-    debug_log!("JSONL: RETURNING session_id={:?} total_tokens={}", session_id, total_tokens);
 
     JsonlInfo {
         session_id,
