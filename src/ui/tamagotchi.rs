@@ -145,8 +145,20 @@ fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect
         Style::default().fg(Color::DarkGray),
     )));
 
-    let para = Paragraph::new(lines).style(Style::default().fg(color));
-    frame.render_widget(para, area);
+    // Center vertically within the area
+    let content_height = lines.len() as u16;
+    let vertical_padding = area.height.saturating_sub(content_height) / 2;
+    let centered_area = Rect {
+        x: area.x,
+        y: area.y + vertical_padding,
+        width: area.width,
+        height: area.height.saturating_sub(vertical_padding),
+    };
+
+    let para = Paragraph::new(lines)
+        .style(Style::default().fg(color))
+        .alignment(ratatui::layout::Alignment::Center);
+    frame.render_widget(para, centered_area);
 }
 
 fn render_zoomed_room(frame: &mut Frame, app: &App, area: Rect) {
@@ -205,13 +217,11 @@ fn render_zoomed_creature(
         SessionStatus::New => Color::Blue,
     };
 
-    // Add some padding at the top
-    let mut lines: Vec<Line> = vec![Line::from("")];
-    
     // Render sprite
-    for &line in sprite_lines {
-        lines.push(Line::from(Span::styled(line, Style::default().fg(color))));
-    }
+    let mut lines: Vec<Line> = sprite_lines
+        .iter()
+        .map(|&l| Line::from(Span::styled(l, Style::default().fg(color))))
+        .collect();
 
     lines.push(Line::from(""));
     lines.push(Line::from(vec![
@@ -260,8 +270,20 @@ fn render_zoomed_creature(
         Style::default().fg(color)
     };
 
-    let para = Paragraph::new(lines).style(style);
-    frame.render_widget(para, area);
+    // Center vertically within the area
+    let content_height = lines.len() as u16;
+    let vertical_padding = area.height.saturating_sub(content_height) / 2;
+    let centered_area = Rect {
+        x: area.x,
+        y: area.y + vertical_padding,
+        width: area.width,
+        height: area.height.saturating_sub(vertical_padding),
+    };
+
+    let para = Paragraph::new(lines)
+        .style(style)
+        .alignment(ratatui::layout::Alignment::Center);
+    frame.render_widget(para, centered_area);
 }
 
 fn render_footer(frame: &mut Frame, app: &App, area: Rect) {
