@@ -1,5 +1,7 @@
 # tmuxgotchi
 
+> Inspired by [gavraz/recon](https://github.com/gavraz/recon), a tmux-native dashboard for Claude Code agents.
+
 A tamagotchi-style TUI for managing [pi](https://github.com/mariozechner/pi-coding-agent) agent sessions in tmux.
 
 Run multiple pi sessions in tmux, then manage them all without leaving the terminal — see what each agent is working on, which ones need attention, switch between them, kill or spawn new ones. All from a single keybinding.
@@ -114,10 +116,6 @@ bind G display-popup -E -w 80% -h 60% "tmuxgotchi view"   # prefix + G → tamag
 bind N display-popup -E -w 80% -h 60% "tmuxgotchi launch" # prefix + N → new session  
 bind I run-shell "tmuxgotchi next"                         # prefix + I → jump to working
 ```
-
-## Inspiration
-
-Inspired by [gavraz/recon](https://github.com/gavraz/recon), a tmux-native dashboard for Claude Code agents. tmuxgotchi adapts the concept for the pi-agent ecosystem.
 
 ## License
 
