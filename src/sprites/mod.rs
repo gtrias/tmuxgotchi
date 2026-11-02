@@ -59,6 +59,9 @@ pub fn creature_for_session(session_id: &str) -> CreatureType {
 }
 
 /// Get the sprite frames for a creature in a given state
-pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+pub fn get_frames(
+    creature: CreatureType,
+    status: SessionStatus,
+) -> &'static [&'static [&'static str]] {
     frames::get_frames(creature, status)
 }

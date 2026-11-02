@@ -324,11 +324,20 @@ impl App {
             .unwrap_or_else(|_| "{}".to_string())
     }
 
-    pub fn update_tokens(&mut self, room_name: &str, context_pct: Option<f32>, width: u16, height: u16) {
+    pub fn update_tokens(
+        &mut self,
+        room_name: &str,
+        context_pct: Option<f32>,
+        width: u16,
+        height: u16,
+    ) {
         let remaining_pct = 100.0 - context_pct.unwrap_or(0.0);
         let target_count = ((remaining_pct / 100.0) * 12.0).round() as usize;
 
-        let tokens = self.room_tokens.entry(room_name.to_string()).or_insert_with(Vec::new);
+        let tokens = self
+            .room_tokens
+            .entry(room_name.to_string())
+            .or_insert_with(Vec::new);
 
         // Adjust token count
         while tokens.len() < target_count {
