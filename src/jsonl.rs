@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::Deserialize;
 
 /// Extracted info from a JSONL session file.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct JsonlInfo {
     pub session_id: Option<String>,
     pub total_tokens: u64,
@@ -57,15 +57,10 @@ struct CostInfo {
     total: f64,
 }
 
-/// Parse a JSONL file, incrementally if possible.
-pub fn parse_jsonl(
-    path: &Path,
-    prev_file_size: u64,
-    prev_session_id: Option<String>,
-    prev_total_tokens: u64,
-    prev_cost: Option<f64>,
-    prev_activity: Option<String>,
-) -> JsonlInfo {
+/// Parse a JSONL file, incrementally: `prev` is what a previous call reported
+/// for the same file (or the default when it is new), and everything the file
+/// has appended since is read on top of it.
+pub fn parse_jsonl(path: &Path, prev: &JsonlInfo) -> JsonlInfo {
     let file = match fs::File::open(path) {
         Ok(f) => f,
         Err(_) => return JsonlInfo::default(),
@@ -74,12 +69,12 @@ pub fn parse_jsonl(
     let file_size = file.metadata().map(|m| m.len()).unwrap_or(0);
 
     // If file hasn't changed, return cached data
-    if file_size == prev_file_size && prev_file_size > 0 {
+    if file_size == prev.file_size && prev.file_size > 0 {
         return JsonlInfo {
-            session_id: prev_session_id,
-            total_tokens: prev_total_tokens,
-            total_cost: prev_cost,
-            last_activity: prev_activity,
+            session_id: prev.session_id.clone(),
+            total_tokens: prev.total_tokens,
+            total_cost: prev.total_cost,
+            last_activity: prev.last_activity.clone(),
             file_size,
         };
     }
@@ -92,12 +87,12 @@ pub fn parse_jsonl(
 
     // If we have previous data and file grew, seek to where we left off
     // (but preserve session_id since it's only in the first line which we skip)
-    if prev_file_size > 0 {
-        let _ = reader.seek(SeekFrom::Start(prev_file_size));
-        session_id = prev_session_id;
-        total_tokens = prev_total_tokens;
-        total_cost = prev_cost.unwrap_or(0.0);
-        last_activity = prev_activity;
+    if prev.file_size > 0 {
+        let _ = reader.seek(SeekFrom::Start(prev.file_size));
+        session_id = prev.session_id.clone();
+        total_tokens = prev.total_tokens;
+        total_cost = prev.total_cost.unwrap_or(0.0);
+        last_activity = prev.last_activity.clone();
     }
 
     let mut line = String::new();
@@ -152,5 +147,103 @@ pub fn parse_jsonl(
         },
         last_activity,
         file_size,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    fn write(path: &Path, contents: &str) {
+        let mut f = fs::File::create(path).unwrap();
+        f.write_all(contents.as_bytes()).unwrap();
+    }
+
+    fn dir() -> std::path::PathBuf {
+        std::env::temp_dir().join(format!(
+            "tmuxgotchi-jsonl-test-{}-{:?}",
+            std::process::id(),
+            std::time::SystemTime::now()
+        ))
+    }
+
+    #[test]
+    fn fresh_file_reports_session_usage_cost_and_activity() {
+        let path = dir();
+        write(
+            &path,
+            concat!(
+                "{\"type\":\"session\",\"id\":\"sess-1\"}\n",
+                "{\"type\":\"message\",\"timestamp\":\"2026-01-01T00:00:00Z\",\"message\":{\"usage\":{\"input\":10,\"output\":5,\"totalTokens\":15,\"cost\":{\"total\":0.25}}}}\n",
+            ),
+        );
+
+        let info = parse_jsonl(&path, &JsonlInfo::default());
+
+        assert_eq!(info.session_id.as_deref(), Some("sess-1"));
+        assert_eq!(info.total_tokens, 15);
+        assert_eq!(info.total_cost, Some(0.25));
+        assert_eq!(info.last_activity.as_deref(), Some("2026-01-01T00:00:00Z"));
+        assert!(info.file_size > 0);
+        let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn unchanged_file_returns_the_previous_report() {
+        let path = dir();
+        write(
+            &path,
+            "{\"type\":\"session\",\"id\":\"sess-1\"}\n{\"type\":\"message\"}\n",
+        );
+
+        let first = parse_jsonl(&path, &JsonlInfo::default());
+        let second = parse_jsonl(&path, &first);
+
+        assert_eq!(second.session_id, first.session_id);
+        assert_eq!(second.total_tokens, first.total_tokens);
+        assert_eq!(second.total_cost, first.total_cost);
+        assert_eq!(second.file_size, first.file_size);
+        let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn appended_lines_add_onto_the_previous_report() {
+        let path = dir();
+        write(
+            &path,
+            concat!(
+                "{\"type\":\"session\",\"id\":\"sess-1\"}\n",
+                "{\"type\":\"message\",\"timestamp\":\"2026-01-01T00:00:00Z\",\"message\":{\"usage\":{\"input\":10,\"output\":5,\"totalTokens\":15,\"cost\":{\"total\":0.25}}}}\n",
+            ),
+        );
+        let first = parse_jsonl(&path, &JsonlInfo::default());
+
+        // Append a later message; the session line is never re-read.
+        let mut f = fs::OpenOptions::new().append(true).open(&path).unwrap();
+        writeln!(
+            f,
+            "{{\"type\":\"message\",\"timestamp\":\"2026-01-02T00:00:00Z\",\"message\":{{\"usage\":{{\"input\":20,\"output\":10,\"totalTokens\":30,\"cost\":{{\"total\":0.5}}}}}}}}"
+        )
+        .unwrap();
+
+        let second = parse_jsonl(&path, &first);
+
+        assert_eq!(second.session_id.as_deref(), Some("sess-1"));
+        assert_eq!(second.total_tokens, 30);
+        assert_eq!(second.total_cost, Some(0.75));
+        assert_eq!(
+            second.last_activity.as_deref(),
+            Some("2026-01-02T00:00:00Z")
+        );
+        assert!(second.file_size > first.file_size);
+        let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn missing_file_reports_nothing() {
+        let path = dir();
+        let info = parse_jsonl(&path, &JsonlInfo::default());
+        assert_eq!(info, JsonlInfo::default());
     }
 }

@@ -81,18 +81,12 @@ pub fn parse_status_line(line: &str) -> StatusBarInfo {
     }
 
     // Git dirty: *N
-    if let Some(caps) = Regex::new(r"\*(\d+)")
-        .ok()
-        .and_then(|re| re.captures(line))
-    {
+    if let Some(caps) = Regex::new(r"\*(\d+)").ok().and_then(|re| re.captures(line)) {
         info.git_dirty = caps[1].parse().ok();
     }
 
     // Git staged: +N
-    if let Some(caps) = Regex::new(r"\+(\d+)")
-        .ok()
-        .and_then(|re| re.captures(line))
-    {
+    if let Some(caps) = Regex::new(r"\+(\d+)").ok().and_then(|re| re.captures(line)) {
         info.git_staged = caps[1].parse().ok();
     }
 

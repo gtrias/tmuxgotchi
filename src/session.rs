@@ -115,7 +115,11 @@ pub fn discover_sessions(prev_sessions: &HashMap<String, PiSession>) -> Vec<PiSe
             .unwrap_or_else(|| derive_project_name(&pane.cwd));
 
         let session_id = jsonl_info.session_id.unwrap_or_else(|| {
-            format!("tmux-{}-{}", pane.session_name, pane.pane_id.replace(':', "-"))
+            format!(
+                "tmux-{}-{}",
+                pane.session_name,
+                pane.pane_id.replace(':', "-")
+            )
         });
 
         sessions.push(PiSession {
@@ -232,16 +236,19 @@ fn find_jsonl_for_cwd(
     match best {
         Some((path, _)) => {
             // Check if we can reuse cached data
-            let prev = prev_sessions.values().find(|s| s.jsonl_path == path);
+            let prev = prev_sessions
+                .values()
+                .find(|s| s.jsonl_path == path)
+                .map(|s| jsonl::JsonlInfo {
+                    session_id: Some(s.session_id.clone()),
+                    total_tokens: s.last_total_tokens,
+                    total_cost: s.total_cost,
+                    last_activity: s.last_activity.clone(),
+                    file_size: s.last_file_size,
+                })
+                .unwrap_or_default();
 
-            let info = jsonl::parse_jsonl(
-                &path,
-                prev.map(|s| s.last_file_size).unwrap_or(0),
-                prev.and_then(|s| Some(s.session_id.clone())),
-                prev.map(|s| s.last_total_tokens).unwrap_or(0),
-                prev.and_then(|s| s.total_cost),
-                prev.and_then(|s| s.last_activity.clone()),
-            );
+            let info = jsonl::parse_jsonl(&path, &prev);
 
             (path, info)
         }

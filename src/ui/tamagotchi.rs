@@ -30,13 +30,11 @@ fn render_rooms(frame: &mut Frame, app: &mut App, area: Rect) {
     let end = (start + ROOMS_PER_PAGE).min(rooms.len());
     let visible_rooms: Vec<&String> = rooms.iter().skip(start).take(ROOMS_PER_PAGE).collect();
 
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .title(format!(
-            " tmuxgotchi — page {}/{} ",
-            app.tama_page + 1,
-            (rooms.len() + ROOMS_PER_PAGE - 1) / ROOMS_PER_PAGE
-        ));
+    let block = Block::default().borders(Borders::ALL).title(format!(
+        " tmuxgotchi — page {}/{} ",
+        app.tama_page + 1,
+        (rooms.len() + ROOMS_PER_PAGE - 1) / ROOMS_PER_PAGE
+    ));
 
     let inner = block.inner(area);
     frame.render_widget(block, area);
@@ -49,7 +47,8 @@ fn render_rooms(frame: &mut Frame, app: &mut App, area: Rect) {
     }
 
     // 2x2 grid layout
-    let rows = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).split(inner);
+    let rows =
+        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).split(inner);
 
     // Pre-collect room data to avoid borrow conflicts
     let tick = app.tick;
@@ -57,7 +56,8 @@ fn render_rooms(frame: &mut Frame, app: &mut App, area: Rect) {
         .iter()
         .enumerate()
         .flat_map(|(row_idx, row_area)| {
-            let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(*row_area);
+            let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(*row_area);
             cols.iter()
                 .enumerate()
                 .filter_map(|(col_idx, col_area)| {
@@ -81,7 +81,15 @@ fn render_rooms(frame: &mut Frame, app: &mut App, area: Rect) {
 
     for (idx, (room_name, sessions, col_area)) in room_data.into_iter().enumerate() {
         let session_refs: Vec<&PiSession> = sessions.iter().collect();
-        render_room(frame, app, &room_name, &session_refs, idx + 1, tick, col_area);
+        render_room(
+            frame,
+            app,
+            &room_name,
+            &session_refs,
+            idx + 1,
+            tick,
+            col_area,
+        );
     }
 }
 
@@ -146,10 +154,7 @@ fn render_creature(frame: &mut Frame, session: &PiSession, tick: u64, area: Rect
             format!("{} ", creature.name()),
             Style::default().fg(color).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(
-            session.status.label(),
-            Style::default().fg(color),
-        ),
+        Span::styled(session.status.label(), Style::default().fg(color)),
     ]));
 
     if let Some(ref model) = session.model {
@@ -191,9 +196,7 @@ fn render_tokens(
     let avg_context_pct = if sessions.is_empty() {
         None
     } else {
-        let sum: f32 = sessions.iter()
-            .filter_map(|s| s.context_pct)
-            .sum();
+        let sum: f32 = sessions.iter().filter_map(|s| s.context_pct).sum();
         let count = sessions.iter().filter(|s| s.context_pct.is_some()).count();
         if count > 0 {
             Some(sum / count as f32)
@@ -213,7 +216,7 @@ fn render_tokens(
         for token in tokens {
             let x = area.x + (token.x.round() as u16).min(area.width.saturating_sub(3));
             let y = area.y + (token.y.round() as u16).min(area.height.saturating_sub(1));
-            
+
             if x < area.x + area.width && y < area.y + area.height {
                 let buf = frame.buffer_mut();
                 buf.set_string(x, y, token_char, Style::default());
@@ -290,10 +293,7 @@ fn render_zoomed_creature(
             format!("{} ", creature.name()),
             Style::default().fg(color).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(
-            session.status.label(),
-            Style::default().fg(color),
-        ),
+        Span::styled(session.status.label(), Style::default().fg(color)),
     ]));
 
     if let Some(ref model) = session.model {

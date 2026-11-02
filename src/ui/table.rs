@@ -60,7 +60,10 @@ fn render_table(frame: &mut Frame, app: &App, area: Rect) {
             // Status cell
             let status_cell = Cell::from(Line::from(vec![
                 Span::styled(status_dot, Style::default().fg(status_color)),
-                Span::styled(format!(" {}", status_label), Style::default().fg(status_color)),
+                Span::styled(
+                    format!(" {}", status_label),
+                    Style::default().fg(status_color),
+                ),
             ]));
 
             // Context with color based on usage
@@ -104,11 +107,9 @@ fn render_table(frame: &mut Frame, app: &App, area: Rect) {
         Constraint::Length(8),  // Cost
     ];
 
-    let table = Table::new(rows, widths).header(header).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" tmuxgotchi "),
-    );
+    let table = Table::new(rows, widths)
+        .header(header)
+        .block(Block::default().borders(Borders::ALL).title(" tmuxgotchi "));
 
     frame.render_widget(table, area);
 }

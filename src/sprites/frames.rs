@@ -3,74 +3,77 @@ use crate::session::SessionStatus;
 
 /// Get animation frames for a creature in a given state
 /// Returns slice of frames, each frame is a slice of lines
-pub fn get_frames(creature: CreatureType, status: SessionStatus) -> &'static [&'static [&'static str]] {
+pub fn get_frames(
+    creature: CreatureType,
+    status: SessionStatus,
+) -> &'static [&'static [&'static str]] {
     match (creature, status) {
         // Blob
         (CreatureType::Blob, SessionStatus::Working) => BLOB_WORKING,
         (CreatureType::Blob, SessionStatus::Idle) => BLOB_IDLE,
         (CreatureType::Blob, SessionStatus::Input) => BLOB_INPUT,
         (CreatureType::Blob, SessionStatus::New) => EGG_NEW,
-        
+
         // Snail
         (CreatureType::Snail, SessionStatus::Working) => SNAIL_WORKING,
         (CreatureType::Snail, SessionStatus::Idle) => SNAIL_IDLE,
         (CreatureType::Snail, SessionStatus::Input) => SNAIL_INPUT,
         (CreatureType::Snail, SessionStatus::New) => EGG_NEW,
-        
+
         // Cat
         (CreatureType::Cat, SessionStatus::Working) => CAT_WORKING,
         (CreatureType::Cat, SessionStatus::Idle) => CAT_IDLE,
         (CreatureType::Cat, SessionStatus::Input) => CAT_INPUT,
         (CreatureType::Cat, SessionStatus::New) => EGG_NEW,
-        
+
         // Robot
         (CreatureType::Robot, SessionStatus::Working) => ROBOT_WORKING,
         (CreatureType::Robot, SessionStatus::Idle) => ROBOT_IDLE,
         (CreatureType::Robot, SessionStatus::Input) => ROBOT_INPUT,
         (CreatureType::Robot, SessionStatus::New) => EGG_NEW,
-        
+
         // Ghost
         (CreatureType::Ghost, SessionStatus::Working) => GHOST_WORKING,
         (CreatureType::Ghost, SessionStatus::Idle) => GHOST_IDLE,
         (CreatureType::Ghost, SessionStatus::Input) => GHOST_INPUT,
         (CreatureType::Ghost, SessionStatus::New) => EGG_NEW,
-        
+
         // Bird
         (CreatureType::Bird, SessionStatus::Working) => BIRD_WORKING,
         (CreatureType::Bird, SessionStatus::Idle) => BIRD_IDLE,
         (CreatureType::Bird, SessionStatus::Input) => BIRD_INPUT,
         (CreatureType::Bird, SessionStatus::New) => EGG_NEW,
-        
+
         // Octopus
         (CreatureType::Octopus, SessionStatus::Working) => OCTOPUS_WORKING,
         (CreatureType::Octopus, SessionStatus::Idle) => OCTOPUS_IDLE,
         (CreatureType::Octopus, SessionStatus::Input) => OCTOPUS_INPUT,
         (CreatureType::Octopus, SessionStatus::New) => EGG_NEW,
-        
+
         // Cactus
         (CreatureType::Cactus, SessionStatus::Working) => CACTUS_WORKING,
         (CreatureType::Cactus, SessionStatus::Idle) => CACTUS_IDLE,
         (CreatureType::Cactus, SessionStatus::Input) => CACTUS_INPUT,
         (CreatureType::Cactus, SessionStatus::New) => EGG_NEW,
-        
+
         // Mushroom
         (CreatureType::Mushroom, SessionStatus::Working) => MUSHROOM_WORKING,
         (CreatureType::Mushroom, SessionStatus::Idle) => MUSHROOM_IDLE,
         (CreatureType::Mushroom, SessionStatus::Input) => MUSHROOM_INPUT,
         (CreatureType::Mushroom, SessionStatus::New) => EGG_NEW,
-        
+
         // Alien
         (CreatureType::Alien, SessionStatus::Working) => ALIEN_WORKING,
         (CreatureType::Alien, SessionStatus::Idle) => ALIEN_IDLE,
         (CreatureType::Alien, SessionStatus::Input) => ALIEN_INPUT,
         (CreatureType::Alien, SessionStatus::New) => EGG_NEW,
-        
+
         // Frog
         (CreatureType::Frog, SessionStatus::Working) => FROG_WORKING,
         (CreatureType::Frog, SessionStatus::Idle) => FROG_IDLE,
         (CreatureType::Frog, SessionStatus::Input) => FROG_INPUT,
         (CreatureType::Frog, SessionStatus::New) => EGG_NEW,
-        
+
         // Pumpkin
         (CreatureType::Pumpkin, SessionStatus::Working) => PUMPKIN_WORKING,
         (CreatureType::Pumpkin, SessionStatus::Idle) => PUMPKIN_IDLE,
